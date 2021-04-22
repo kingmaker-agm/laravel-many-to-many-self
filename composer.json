@@ -1,0 +1,16 @@
+{
+    "name": "kingmaker/laravel-many-to-many-self-relationship",
+    "type": "library",
+    "description": "Laravel Many to Many Relationship on the same Model through a pivot table.",
+    "authors": [
+        {
+            "name": "Kingmaker",
+            "email": "b.g.pratheep.cool@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2|^8.0",
+        "ext-json": "*",
+        "illuminate/database": "^6.0|^7.0|^8.0"
+    }
+}
