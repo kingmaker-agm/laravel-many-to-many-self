@@ -12,5 +12,10 @@
         "php": "^7.2|^8.0",
         "ext-json": "*",
         "illuminate/database": "^6.0|^7.0|^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kingmaker\\Illuminate\\Eloquent\\Relations\\": "src"
+        }
     }
 }
