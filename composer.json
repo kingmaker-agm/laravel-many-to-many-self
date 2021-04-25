@@ -1,6 +1,7 @@
 {
     "name": "kingmaker/laravel-many-to-many-self-relationship",
     "type": "library",
+    "version": "0.1.0",
     "description": "Laravel Many to Many Relationship on the same Model through a pivot table.",
     "authors": [
         {
@@ -17,5 +18,6 @@
         "psr-4": {
             "Kingmaker\\Illuminate\\Eloquent\\Relations\\": "src"
         }
-    }
+    },
+    "minimum-stability": "stable"
 }
