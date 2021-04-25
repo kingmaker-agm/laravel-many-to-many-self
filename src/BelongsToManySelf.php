@@ -5,10 +5,19 @@ namespace Kingmaker\Illuminate\Eloquent\Relations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Query\JoinClause;
 
 class BelongsToManySelf extends BelongsToMany
 {
+    /**
+     * @var \Illuminate\Database\Query\Builder
+     */
+    protected $directJoinWhere;
+
+    /**
+     * @var \Illuminate\Database\Query\Builder
+     */
+    protected $inverseJoinWhere;
+
     /**
      * BelongsToManySelf constructor.
      * @param Builder $query
@@ -39,35 +48,27 @@ class BelongsToManySelf extends BelongsToMany
         // model instance.
         // Then we can set the "where" for the parent models.
         $query->join($this->table, function($join) {
-            /** @var JoinClause $join */
+            /** @var \Illuminate\Database\Query\JoinClause $join */
             $join->on(function ($query) {
-                /** @var Builder $query */
+                /** @var \Illuminate\Database\Query\Builder $query */
+                $this->directJoinWhere = $query;
+
                 return $query
                     ->whereColumn(
                         $this->getQualifiedRelatedKeyName(),
                         '=',
                         $this->getQualifiedRelatedPivotKeyName()
-                    )
-                    // Fixme check for the whether it is a query on single parent or as multiple parents during eager loading
-                    ->where(
-                        $this->getQualifiedForeignPivotKeyName(),
-                        '=',
-                        $this->parent->getKey()
                     );
             })
                 ->orOn(function ($query) {
-                    /** @var Builder $query */
+                    /** @var \Illuminate\Database\Query\Builder $query */
+                    $this->inverseJoinWhere = $query;
+
                     return $query
                         ->whereColumn(
                             $this->getQualifiedRelatedKeyName(),
                             '=',
                             $this->getQualifiedForeignPivotKeyName()
-                        )
-                        // Fixme check for the whether it is a query on single parent or as multiple parents during eager loading
-                        ->where(
-                            $this->getQualifiedRelatedPivotKeyName(),
-                            '=',
-                            $this->parent->getKey()
                         );
                 });
         });
@@ -82,7 +83,46 @@ class BelongsToManySelf extends BelongsToMany
      */
     protected function addWhereConstraints()
     {
-        // We are making the WHERE Constraints on the Join Operation
+        $this->directJoinWhere->where(
+            $this->getQualifiedForeignPivotKeyName(),
+            '=',
+            $this->parent->getKey()
+        );
+        $this->addBinding($this->parent->getKey(), 'join');
+
+        $this->inverseJoinWhere->where(
+            $this->getQualifiedRelatedPivotKeyName(),
+            '=',
+            $this->parent->getKey()
+        );
+        $this->addBinding($this->parent->getKey(), 'join');
+
+
         return $this;
+    }
+
+    /**
+     * Set the constraints for an eager load of the relation.
+     *
+     * @param  array  $models
+     * @return void
+     */
+    public function addEagerConstraints(array $models)
+    {
+        $whereIn = $this->whereInMethod($this->parent, $this->parentKey);
+
+        $this->directJoinWhere->{$whereIn}(
+            $this->getQualifiedForeignPivotKeyName(),
+            $keys = $this->getKeys($models, $this->parentKey)
+        );
+        $this->inverseJoinWhere->{$whereIn}(
+            $this->getQualifiedRelatedPivotKeyName(),
+            $keys
+        );
+
+        // Bind the Keys to the "join" part of the parent Eloquent Builder
+        $originalJoinKeys = $this->getQuery()->getQuery()->bindings['join'];
+        $newJoinKeys = array_merge($keys, $keys, $originalJoinKeys);
+        $this->setBindings($newJoinKeys, 'join');
     }
 }

@@ -3,7 +3,6 @@
 namespace Kingmaker\Illuminate\Eloquent\Relations;
 
 use Illuminate\Database\Eloquent\Concerns\HasRelationships;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
 
 trait HasBelongsToManySelfRelation
@@ -12,6 +11,16 @@ trait HasBelongsToManySelfRelation
         guessBelongsToManyRelation as parentGuessBelongsToManyRelation;
     }
 
+    /**
+     * create the BelongsToManySelf relation on the same Model via a pivot table
+     *
+     * @param string $table Pivot table name
+     * @param string $pivotKey1 Pivot table foreign key 1
+     * @param string $pivotKey2 Pivot table foreign key 2
+     * @param string|null $relatedKey Related key on the parent table
+     * @param string|null $relation Relation name
+     * @return BelongsToManySelf
+     */
     public function belongsToManySelf(string $table, string $pivotKey1, string $pivotKey2, $relatedKey = null, $relation = null)
     {
         // If no relationship name was passed, we will pull backtraces to get the
