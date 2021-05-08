@@ -3,6 +3,7 @@
 namespace Kingmaker\Illuminate\Eloquent\Relations;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -119,10 +120,31 @@ class BelongsToManySelf extends BelongsToMany
             $this->getQualifiedRelatedPivotKeyName(),
             $keys
         );
+    }
 
-        // Bind the Keys to the "join" part of the parent Eloquent Builder
-        $originalJoinKeys = $this->getQuery()->getQuery()->bindings['join'];
-        $newJoinKeys = array_merge($keys, $keys, $originalJoinKeys);
-        $this->setBindings($newJoinKeys, 'join');
+    /**
+     * Build model dictionary keyed by the relation's foreign key.
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @return array
+     */
+    protected function buildDictionary(Collection $results)
+    {
+        // First we will build a dictionary of child models keyed by the foreign key
+        // of the relation so that we will easily and quickly match them to their
+        // parents without having a possibly slow inner loops for every models.
+        $dictionary = [];
+
+        foreach ($results as $result) {
+            $foreign_key = $this->getDictionaryKey($result->{$this->accessor}->{$this->foreignPivotKey});
+            $related_key = $this->getDictionaryKey($result->{$this->accessor}->{$this->relatedPivotKey});
+
+            if ($result->{$this->parentKey} == $foreign_key)
+                $dictionary[$related_key][] = $result;
+            else
+                $dictionary[$foreign_key][] = $result;
+        }
+
+        return $dictionary;
     }
 }

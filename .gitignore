@@ -5,3 +5,12 @@
 
 # Vendor Files
 /vendor/
+
+# Test related Files
+.phpunit.result.cache
+
+# Package Publication
+#composer.lock
+
+# Environment Variables
+.env

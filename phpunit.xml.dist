@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit bootstrap="tests/bootstrap.php"
+        colors="true"
+        verbose="true">
+
+    <testsuites>
+        <testsuite name="integration">
+            <directory suffix="Test.php">./tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <ini name="memory_limit" value="2048M" />
+    </php>
+
+</phpunit>
