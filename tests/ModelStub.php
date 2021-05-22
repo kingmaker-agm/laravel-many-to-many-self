@@ -12,6 +12,9 @@ use Kingmaker\Illuminate\Eloquent\Relations\HasBelongsToManySelfRelation;
  * @package Kingmaker\Illuminate\Eloquent\Relations\Tests
  * @property int $id
  * @property string $name
+ * @property int $age
+ * @property \Illuminate\Support\Carbon $birth_at
+ * @property string $email
  * @property-read Collection|ModelStub[] $friends
  * @mixin Builder
  */
@@ -39,6 +42,11 @@ class ModelStub extends Model
      * @var array
      */
     protected $guarded = [];
+
+    protected $casts = [
+        'age' => 'integer',
+        'birth_at' => 'timestamp'
+    ];
 
     /**
      * ORM Relation

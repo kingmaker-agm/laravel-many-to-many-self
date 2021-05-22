@@ -2,14 +2,13 @@
 
 ![Version](https://img.shields.io/badge/Version-0.1-yellow)
 ![Laravel](https://img.shields.io/badge/Laravel-6%2B-brightgreen)
-![Tests](https://img.shields.io/badge/Tests-none-red)
+![Tests](https://img.shields.io/badge/Tests-passing-green)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
 This package includes an extension to the `belongsToMany` Relationship of the Laravel
 allowing **two-way association** between the same model with a single Entry on the pivot table.
 
 ## Installation
-
 The package can be installed via Composer.
 
 ```bash
@@ -17,7 +16,6 @@ composer install kingmaker/laravel-many-to-many-self-relationship
 ```
 
 ## Usage
-
 Include the `HasBelongsToManySelfRelation` trait in the **Model class** and 
 define the relation method as follows:
 
@@ -47,7 +45,6 @@ $post->relatedPosts; // returns Collection of Related Posts
 > This is an extension over the native `BelongsToMany` class provided by the Eloquent.
 
 ## Example
-
 Consider there are 'posts' table and 'related_posts' table. 
 The Post represent  Post in the blog and it can have related posts similar to them.
 
@@ -83,12 +80,10 @@ Post::find(4)->relatedPosts; // returns Posts with id 2, 1, 3
 ```
 
 ## Caution
-
 There is a possibility for the returning of _duplicate related object_ 
 if the entities are related by 2rows on the Pivot table.
 
 ## Use Cases
-
 This **two-way associated** Many-to-Many relationship can be used in few peculiar situations.
 This relation doesn't suit all the Scenarios.
 
@@ -111,7 +106,6 @@ This relation lets you retrieve all the Users that have messaged a particular Us
 > **Note**: There may be possibility of duplicates in this case
 
 ## API Reference
-
 The trait `HasBelongsToManySelfRelation` adds the method `belongsToManySelf` to your Model.
 
 ```php
@@ -130,6 +124,11 @@ The trait `HasBelongsToManySelfRelation` adds the method `belongsToManySelf` to 
 
 The `BelongsToManySelf` is a concrete/child/sub-class of the Eloquent `BelongsToMany` class.
 So, All the methods available on the `BelongsToMany` is also available on this Relation.
+
+## Known Issues
+The following Issues / Problems were found in this package or the underlying Database Engine.
+
+- the `has` and `whereHas` constraint will not work in **MySQL < v8.0.14**
 
 ## Contributing
 

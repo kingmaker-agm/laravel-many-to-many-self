@@ -10,7 +10,7 @@
 .phpunit.result.cache
 
 # Package Publication
-#composer.lock
+composer.lock
 
 # Environment Variables
 .env

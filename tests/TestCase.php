@@ -26,4 +26,11 @@ abstract class TestCase extends PhpUnitTestCase
 
         parent::defineEnvironment($app);
     }
+
+    protected function getPackageProviders($app)
+    {
+        return [
+            \Spatie\LaravelRay\RayServiceProvider::class
+        ];
+    }
 }

@@ -147,4 +147,27 @@ class BelongsToManySelf extends BelongsToMany
 
         return $dictionary;
     }
+
+    public function getRelationExistenceQuery(Builder $query, Builder $parentQuery, $columns = ['*'])
+    {
+        $query->select($columns);
+
+        $query->from($this->related->getTable().' as '.$hash = $this->getRelationCountHash());
+        $this->related->setTable($hash);
+
+        $this->performJoin($query);
+
+        $this->directJoinWhere->whereColumn(
+            $this->getQualifiedForeignPivotKeyName(),
+            '=',
+            $parentQuery->getModel()->getQualifiedKeyName()
+        );
+        $this->inverseJoinWhere->whereColumn(
+            $this->getQualifiedRelatedPivotKeyName(),
+            '=',
+            $parentQuery->getModel()->getQualifiedKeyName()
+        );
+
+        return $query;
+    }
 }
