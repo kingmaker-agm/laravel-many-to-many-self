@@ -21,7 +21,7 @@ abstract class TestCase extends PhpUnitTestCase
 
     protected function defineEnvironment($app)
     {
-        $app->useEnvironmentPath(__DIR__ . '/../');
+        $app->useEnvironmentPath(__DIR__ . '/');
         $app->bootstrapWith([LoadEnvironmentVariables::class]);
 
         parent::defineEnvironment($app);
