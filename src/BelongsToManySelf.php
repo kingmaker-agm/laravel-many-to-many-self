@@ -6,9 +6,19 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class BelongsToManySelf extends BelongsToMany
 {
+    /**
+     * The Aliased Table Name for the intermediate table.
+     * --------------------------------------------------
+     * Used when adding the applying the Relationship Exists conditions
+     *
+     * @var string|null
+     */
+    protected $tableAlias;
+
     /**
      * @var \Illuminate\Database\Query\Builder
      */
@@ -37,10 +47,11 @@ class BelongsToManySelf extends BelongsToMany
     /**
      * Set the join clause for the relation query.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder|null  $query
+     * @param \Illuminate\Database\Eloquent\Builder|null  $query
+     * @param bool $performPivotAliasing should have to alias the intermediate table during JOIN
      * @return $this
      */
-    protected function performJoin($query = null)
+    protected function performJoin($query = null, bool $performPivotAliasing = false)
     {
         $query = $query ?: $this->query;
 
@@ -48,7 +59,11 @@ class BelongsToManySelf extends BelongsToMany
         // key column with the intermediate table's foreign key for the related
         // model instance.
         // Then we can set the "where" for the parent models.
-        $query->join($this->table, function($join) {
+        $pivotTable = $this->getTable();
+        if ($performPivotAliasing)
+            $pivotTable = $this->getTable() . ' AS ' . $this->generatePivotTableAlias();
+
+        $query->join($pivotTable, function($join) {
             /** @var \Illuminate\Database\Query\JoinClause $join */
             $join->on(function ($query) {
                 /** @var \Illuminate\Database\Query\Builder $query */
@@ -75,6 +90,29 @@ class BelongsToManySelf extends BelongsToMany
         });
 
         return $this;
+    }
+
+    /**
+     * Generate an Table Alias for the intermediate Pivot Table
+     *
+     * @return string
+     */
+    protected function generatePivotTableAlias(): string
+    {
+        return $this->tableAlias = $this->getRelationCountHash();
+    }
+
+    /**
+     * Qualify the given column name by the pivot table.
+     *
+     * @param  string  $column
+     * @return string
+     */
+    public function qualifyPivotColumn($column)
+    {
+        return Str::contains($column, '.')
+            ? $column
+            : ($this->tableAlias ?? $this->table).'.'.$column;
     }
 
     /**
@@ -155,7 +193,7 @@ class BelongsToManySelf extends BelongsToMany
         $query->from($this->related->getTable().' as '.$hash = $this->getRelationCountHash());
         $this->related->setTable($hash);
 
-        $this->performJoin($query);
+        $this->performJoin($query, true);
 
         $this->directJoinWhere->whereColumn(
             $this->getQualifiedForeignPivotKeyName(),

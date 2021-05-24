@@ -266,6 +266,29 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($user_with_more_sophisticated_friend->find($this->user4_id));
     }
 
+    /** @test */
+    public function it_can_have_nested_repeated_where_has_eloquent_query()
+    {
+        $user5 = ModelStub::create([
+            'name' => 'User 5',
+            'age' => 40
+        ]);
+        ModelStub::find($this->user1_id)->friends()->attach($user5);
+
+        $users = ModelStub::whereHas('friends', function (Builder $query) {
+            return $query->whereHas('friends', function (Builder $innerQuery) {
+                return $innerQuery->where('age', 40); // newly Created User 5
+            });
+        })->get();
+
+        $this->assertCount(3, $users);
+        $this->assertNotNull($users->find($user5->id));
+        $this->assertNotNull($users->find($this->user2_id));
+        $this->assertNotNull($users->find($this->user4_id));
+        $this->assertNull($users->find($this->user1_id));
+        $this->assertNull($users->find($this->user3_id));
+    }
+
     protected function createDatabaseForManyToManySelf()
     {
         Schema::dropIfExists('friends');
