@@ -45,7 +45,7 @@ class ModelStub extends Model
 
     protected $casts = [
         'age' => 'integer',
-        'birth_at' => 'timestamp'
+        'birth_at' => 'datetime'
     ];
 
     /**

@@ -57,6 +57,8 @@ trait ManyToManySelfTestCase
         $this->assertCount(2, $friends1);
         $this->assertNotNull($friends1->find($this->user2_id), "The Friends of User 1 doesn't has the User 2");
         $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
+        $this->assertNull($friends1->find($this->user1_id));
+        $this->assertNull($friends1->find($this->user3_id));
 
         $user2 = $users->find($this->user2_id);
         $friends2 = $user2->friends;
@@ -64,12 +66,15 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends2->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
         $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
         $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
+        $this->assertNull($friends2->find($this->user2_id));
 
         $user3 = $users->find($this->user3_id);
         $friends3 = $user3->friends;
         $this->assertCount(2, $friends3);
         $this->assertNotNull($friends3->find($this->user2_id), "The Friends of User 3 doesn't has the User 2");
         $this->assertNotNull($friends3->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
+        $this->assertNull($friends3->find($this->user1_id));
+        $this->assertNull($friends3->find($this->user3_id));
 
         $user4 = $users->find($this->user4_id);
         $friends4 = $user4->friends;
@@ -77,6 +82,79 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends4->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
         $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
         $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
+        $this->assertNull($friends4->find($this->user4_id));
+    }
+
+    /** @test */
+    public function eager_loading_can_be_done_with_only_few_selected_columns()
+    {
+        $users = ModelStub::with('friends:id,name,birth_at')->get();
+
+        $user1 = $users->find($this->user1_id);
+        $friends1 = $user1->friends;
+        $this->assertCount(2, $friends1);
+        $this->assertNotNull($friends1->find($this->user2_id), "The Friends of User 1 doesn't has the User 2");
+        $this->assertEquals("User 2", $friends1->find($this->user2_id)->name);
+        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends1->find($this->user2_id)->birth_at);
+        $this->assertNull($friends1->find($this->user2_id)->age);
+        $this->assertNull($friends1->find($this->user2_id)->email);
+        $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
+        $this->assertEquals("User 4", $friends1->find($this->user4_id)->name);
+        $this->assertNull($friends1->find($this->user4_id)->birth_at);
+        $this->assertNull($friends1->find($this->user4_id)->age);
+        $this->assertNull($friends1->find($this->user4_id)->email);
+
+        $user2 = $users->find($this->user2_id);
+        $friends2 = $user2->friends;
+        $this->assertCount(3, $friends2);
+        $this->assertNotNull($friends2->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
+        $this->assertEquals("User 1", $friends2->find($this->user1_id)->name);
+        $this->assertEquals(Carbon::create(1994,3,21, 4, 36), $friends2->find($this->user1_id)->birth_at);
+        $this->assertNull($friends2->find($this->user1_id)->age);
+        $this->assertNull($friends2->find($this->user1_id)->email);
+        $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
+        $this->assertEquals("User 3", $friends2->find($this->user3_id)->name);
+        $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends2->find($this->user3_id)->birth_at);
+        $this->assertNull($friends2->find($this->user3_id)->age);
+        $this->assertNull($friends2->find($this->user3_id)->email);
+        $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
+        $this->assertEquals("User 4", $friends2->find($this->user4_id)->name);
+        $this->assertNull($friends2->find($this->user4_id)->birth_at);
+        $this->assertNull($friends2->find($this->user4_id)->age);
+        $this->assertNull($friends2->find($this->user4_id)->email);
+
+        $user3 = $users->find($this->user3_id);
+        $friends3 = $user3->friends;
+        $this->assertCount(2, $friends3);
+        $this->assertNotNull($friends3->find($this->user2_id), "The Friends of User 3 doesn't has the User 2");
+        $this->assertEquals("User 2", $friends3->find($this->user2_id)->name);
+        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends3->find($this->user2_id)->birth_at);
+        $this->assertNull($friends3->find($this->user2_id)->age);
+        $this->assertNull($friends3->find($this->user2_id)->email);
+        $this->assertNotNull($friends3->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
+        $this->assertEquals("User 4", $friends3->find($this->user4_id)->name);
+        $this->assertNull($friends3->find($this->user4_id)->birth_at);
+        $this->assertNull($friends3->find($this->user4_id)->age);
+        $this->assertNull($friends3->find($this->user4_id)->email);
+
+        $user4 = $users->find($this->user4_id);
+        $friends4 = $user4->friends;
+        $this->assertCount(3, $friends4);
+        $this->assertNotNull($friends4->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
+        $this->assertEquals("User 1", $friends4->find($this->user1_id)->name);
+        $this->assertEquals(Carbon::create(1994,3,21, 4, 36), $friends4->find($this->user1_id)->birth_at);
+        $this->assertNull($friends4->find($this->user1_id)->age);
+        $this->assertNull($friends4->find($this->user1_id)->email);
+        $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
+        $this->assertEquals("User 2", $friends4->find($this->user2_id)->name);
+        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends4->find($this->user2_id)->birth_at);
+        $this->assertNull($friends4->find($this->user2_id)->age);
+        $this->assertNull($friends4->find($this->user2_id)->email);
+        $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
+        $this->assertEquals("User 3", $friends4->find($this->user3_id)->name);
+        $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends4->find($this->user3_id)->birth_at);
+        $this->assertNull($friends4->find($this->user3_id)->age);
+        $this->assertNull($friends4->find($this->user3_id)->email);
     }
 
     /** @test */
@@ -169,6 +247,58 @@ trait ManyToManySelfTestCase
         $this->assertCount(2, $friends3_of_user4);
         $this->assertNotNull($friends3_of_user4->find($this->user2_id), "The Friends of User 3 doesn't has the User 2");
         $this->assertNotNull($friends3_of_user4->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
+    }
+
+    /** @test */
+    public function it_can_load_other_aggregates_for_the_relation()
+    {
+        [$major, $minor, $patch] = explode('.', app()->version());
+        if ($major < 8 || ($major == 8 && $minor <= 12))
+            $this->markTestSkipped("The Aggregate functions are not available on the Laravel version {$major}.{$minor}.{$patch}");
+
+        $users = ModelStub::query()
+            ->withMax('friends', 'age')
+            ->withMin('friends', 'age')
+            ->withSum('friends', 'age')
+            ->withAvg('friends', 'age')
+            ->get();
+
+        $this->assertEquals(8, $users->find($this->user1_id)->friends_min_age);
+        $this->assertEquals(24, $users->find($this->user1_id)->friends_max_age);
+        $this->assertEquals(32, $users->find($this->user1_id)->friends_sum_age);
+        $this->assertEquals(16, $users->find($this->user1_id)->friends_avg_age);
+
+        $this->assertEquals(8, $users->find($this->user2_id)->friends_min_age);
+        $this->assertEquals(18, $users->find($this->user2_id)->friends_max_age);
+        $this->assertEquals(40, $users->find($this->user2_id)->friends_sum_age);
+        if ($this->getDatabaseDriver() == 'sqlsrv') // SQL Server returning average as an whole integer than float
+            $this->assertEquals(13, $users->find($this->user2_id)->friends_avg_age, 3);
+        else
+            $this->assertEquals(13.333, round($users->find($this->user2_id)->friends_avg_age, 3));
+
+        $this->assertEquals(8, $users->find($this->user3_id)->friends_min_age);
+        $this->assertEquals(24, $users->find($this->user3_id)->friends_max_age);
+        $this->assertEquals(32, $users->find($this->user3_id)->friends_sum_age);
+        $this->assertEquals(16, $users->find($this->user3_id)->friends_avg_age);
+
+        $this->assertEquals(14, $users->find($this->user4_id)->friends_min_age);
+        $this->assertEquals(24, $users->find($this->user4_id)->friends_max_age);
+        $this->assertEquals(56, $users->find($this->user4_id)->friends_sum_age);
+        if ($this->getDatabaseDriver() == 'sqlsrv') // SQL Server returning average as an whole integer than float
+            $this->assertEquals(18, $users->find($this->user4_id)->friends_avg_age, 3);
+        else
+            $this->assertEquals(18.667, round($users->find($this->user4_id)->friends_avg_age, 3));
+    }
+
+    /** @test */
+    public function it_can_load_the_count_for_the_relation()
+    {
+        $users = ModelStub::withCount('friends')->get();
+
+        $this->assertEquals(2, $users->find($this->user1_id)->friends_count);
+        $this->assertEquals(3, $users->find($this->user2_id)->friends_count);
+        $this->assertEquals(2, $users->find($this->user3_id)->friends_count);
+        $this->assertEquals(3, $users->find($this->user4_id)->friends_count);
     }
 
     /** @test */
