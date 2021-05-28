@@ -252,7 +252,7 @@ trait ManyToManySelfTestCase
     /** @test */
     public function it_can_load_other_aggregates_for_the_relation()
     {
-        [$major, $minor, $patch] = explode('.', app()->version());
+        [$major, $minor, $patch] = laravel_version();
         if ($major < 8 || ($major == 8 && $minor <= 12))
             $this->markTestSkipped("The Aggregate functions are not available on the Laravel version {$major}.{$minor}.{$patch}");
 
@@ -339,7 +339,7 @@ trait ManyToManySelfTestCase
             ->orderByDesc('age')
             ->get();
 
-        $this->assertCOunt(3, $friends2);
+        $this->assertCount(3, $friends2);
         $this->assertEquals($this->user1_id, $friends2->get(0)->id);
         $this->assertEquals($this->user3_id, $friends2->get(1)->id);
         $this->assertEquals($this->user4_id, $friends2->get(2)->id);
@@ -425,7 +425,7 @@ trait ManyToManySelfTestCase
         Schema::dropIfExists('users');
 
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
+            $table->unsignedBigInteger('id', true);
             $table->string('name');
             $table->integer('age')->default(0);
             $table->timestamp('birth_at')->nullable();
@@ -433,10 +433,12 @@ trait ManyToManySelfTestCase
         });
 
         Schema::create('friends', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user1')
+            $table->unsignedBigInteger('id', true);
+            $table->unsignedBigInteger('user1');
+            $table->foreign('user1')
                 ->references('id')->on('users');
-            $table->foreignId('user2')
+            $table->unsignedBigInteger('user2');
+            $table->foreign('user2')
                 ->references('id')->on('users');
         });
 
