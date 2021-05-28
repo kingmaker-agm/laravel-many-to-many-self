@@ -1,9 +1,9 @@
 # Laravel Many to Many Self Relationship
 
-![Version](https://img.shields.io/badge/Version-0.1-yellow)
-![Laravel](https://img.shields.io/badge/Laravel-6%2B-brightgreen)
-![Tests](https://img.shields.io/badge/Tests-passing-green)
-![License](https://img.shields.io/badge/License-MIT-blue)
+[![Version](https://img.shields.io/badge/Version-2.1-brightgreen)](https://packagist.org/packages/kingmaker/laravel-many-to-many-self-relationship#2.1.0)
+[![Laravel](https://img.shields.io/badge/Laravel-6%2B-ff694b)](https://laravel.com/)
+[![Tests](https://img.shields.io/badge/Tests-passing-green)](tests)
+[![License](https://img.shields.io/badge/License-MIT-blue)](https://opensource.org/licenses/MIT)
 
 This package includes an extension to the `belongsToMany` Relationship of the Laravel
 allowing **two-way association** between the same model with a single Entry on the pivot table.
