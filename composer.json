@@ -1,7 +1,7 @@
 {
     "name": "kingmaker/laravel-many-to-many-self-relationship",
     "type": "library",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "Laravel Many to Many Relationship on the same Model through a pivot table providing two-way association.",
     "keywords": ["laravel", "relationship", "relation", "many-to-many", "many-to-many-self", "belongs-to-many", "belongs-to-many-self", "two way association"],
     "authors": [
@@ -14,7 +14,7 @@
     "require": {
         "php": "^7.2|^8.0",
         "ext-json": "*",
-        "illuminate/database": ">= 8.17 < 8.35"
+        "illuminate/database": ">= 8.35"
     },
     "autoload": {
         "psr-4": {
