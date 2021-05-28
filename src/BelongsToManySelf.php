@@ -2,6 +2,7 @@
 
 namespace Kingmaker\Illuminate\Eloquent\Relations;
 
+use Doctrine\Instantiator\Exception\InvalidArgumentException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -208,4 +209,57 @@ class BelongsToManySelf extends BelongsToMany
 
         return $query;
     }
+
+    //region Laravel Missing functions in this version
+    /**
+     * Get the fully qualified related key name for the relation.
+     *
+     * @return string
+     */
+    public function getQualifiedRelatedKeyName()
+    {
+        return $this->related->qualifyColumn($this->relatedKey);
+    }
+
+    /**
+     * Get the fully qualified foreign key for the relation.
+     *
+     * @return string
+     */
+    public function getQualifiedForeignPivotKeyName()
+    {
+        return $this->qualifyPivotColumn($this->foreignPivotKey);
+    }
+
+    /**
+     * Get the fully qualified "related key" for the relation.
+     *
+     * @return string
+     */
+    public function getQualifiedRelatedPivotKeyName()
+    {
+        return $this->qualifyPivotColumn($this->relatedPivotKey);
+    }
+
+    /**
+     * Get a dictionary key attribute - casting it to a string if necessary.
+     *
+     * @param  mixed  $attribute
+     * @return mixed
+     *
+     * @throws \Doctrine\Instantiator\Exception\InvalidArgumentException
+     */
+    protected function getDictionaryKey($attribute)
+    {
+        if (is_object($attribute)) {
+            if (method_exists($attribute, '__toString')) {
+                return $attribute->__toString();
+            }
+
+            throw new InvalidArgumentException('Model attribute value is an object but does not have a __toString method.');
+        }
+
+        return $attribute;
+    }
+    //endregion
 }
