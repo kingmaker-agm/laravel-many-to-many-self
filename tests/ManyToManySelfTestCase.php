@@ -158,6 +158,50 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    public function nested_eager_loading_can_be_done_with_only_few_selected_columns()
+    {
+        $user = ModelStub::with('friends.friends:id,name,birth_at')->find($this->user1_id);
+
+        $user2 = $user->friends->find($this->user2_id);
+        $friends2 = $user2->friends;
+        $this->assertCount(3, $friends2);
+        $this->assertNotNull($friends2->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
+        $this->assertEquals("User 1", $friends2->find($this->user1_id)->name);
+        $this->assertEquals(Carbon::create(1994,3,21, 4, 36), $friends2->find($this->user1_id)->birth_at);
+        $this->assertNull($friends2->find($this->user1_id)->age);
+        $this->assertNull($friends2->find($this->user1_id)->email);
+        $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
+        $this->assertEquals("User 3", $friends2->find($this->user3_id)->name);
+        $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends2->find($this->user3_id)->birth_at);
+        $this->assertNull($friends2->find($this->user3_id)->age);
+        $this->assertNull($friends2->find($this->user3_id)->email);
+        $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
+        $this->assertEquals("User 4", $friends2->find($this->user4_id)->name);
+        $this->assertNull($friends2->find($this->user4_id)->birth_at);
+        $this->assertNull($friends2->find($this->user4_id)->age);
+        $this->assertNull($friends2->find($this->user4_id)->email);
+
+        $user4 = $user->friends->find($this->user4_id);
+        $friends4 = $user4->friends;
+        $this->assertCount(3, $friends4);
+        $this->assertNotNull($friends4->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
+        $this->assertEquals("User 1", $friends4->find($this->user1_id)->name);
+        $this->assertEquals(Carbon::create(1994,3,21, 4, 36), $friends4->find($this->user1_id)->birth_at);
+        $this->assertNull($friends4->find($this->user1_id)->age);
+        $this->assertNull($friends4->find($this->user1_id)->email);
+        $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
+        $this->assertEquals("User 2", $friends4->find($this->user2_id)->name);
+        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends4->find($this->user2_id)->birth_at);
+        $this->assertNull($friends4->find($this->user2_id)->age);
+        $this->assertNull($friends4->find($this->user2_id)->email);
+        $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
+        $this->assertEquals("User 3", $friends4->find($this->user3_id)->name);
+        $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends4->find($this->user3_id)->birth_at);
+        $this->assertNull($friends4->find($this->user3_id)->age);
+        $this->assertNull($friends4->find($this->user3_id)->email);
+    }
+
+    /** @test */
     public function nested_relations_can_be_eager_loaded()
     {
         $users = ModelStub::with('friends', 'friends.friends')->get();

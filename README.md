@@ -73,10 +73,10 @@ related_posts:
 The `belongsToManySelf` relation provides **two-way association** when calling the Relation.
 
 ```php
-Post::find(1)->relatedPosts; // returns Posts with id 3, 4, 2
+Post::find(1)->relatedPosts; // returns Posts with id 2, 3, 4
 Post::find(2)->relatedPosts; // returns Posts with id 1, 3, 4
-Post::find(3)->relatedPosts; // returns Posts with id 4, 1, 2
-Post::find(4)->relatedPosts; // returns Posts with id 2, 1, 3
+Post::find(3)->relatedPosts; // returns Posts with id 1, 2, 4
+Post::find(4)->relatedPosts; // returns Posts with id 1, 2, 3
 ```
 
 ## Caution
@@ -129,6 +129,10 @@ So, All the methods available on the `BelongsToMany` is also available on this R
 The following Issues / Problems were found in this package or the underlying Database Engine.
 
 - the `has` and `whereHas` constraint will not work in **MySQL < v8.0.14**
+
+## Tips
+
+- To improve the performance of the relation, create **two Pivot Table indexes** such as `(pivot_key1, pivot_key2)` and `(pivot_key2, pivot_key1)`
 
 ## Contributing
 
