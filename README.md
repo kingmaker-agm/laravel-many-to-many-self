@@ -15,6 +15,16 @@ The package can be installed via Composer.
 composer install kingmaker/laravel-many-to-many-self-relationship
 ```
 
+## Version
+
+This package is available on specific Laravel versions.
+
+| Package Version | Laravel Version |
+| --------------- | --------------- |
+| 1.x             | 6.20+ or 7.29+  |
+| 2.0.x           | 8.17 - 8.34     |
+| 2.1+            | 8.35+           |
+
 ## Usage
 Include the `HasBelongsToManySelfRelation` trait in the **Model class** and 
 define the relation method as follows:
