@@ -12,7 +12,7 @@ allowing **two-way association** between the same model with a single Entry on t
 The package can be installed via Composer.
 
 ```bash
-composer install kingmaker/laravel-many-to-many-self-relationship
+composer require kingmaker/laravel-many-to-many-self-relationship
 ```
 
 ## Version
