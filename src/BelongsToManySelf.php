@@ -2,19 +2,19 @@
 
 namespace Kingmaker\Illuminate\Eloquent\Relations;
 
-use Doctrine\Instantiator\Exception\InvalidArgumentException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class BelongsToManySelf extends BelongsToMany
 {
     /**
      * The Aliased Table Name for the intermediate table.
      * --------------------------------------------------
-     * Used when adding the applying the Relationship Exists conditions
+     * Used when applying the Relationship Exists conditions
      *
      * @var string|null
      */
@@ -247,7 +247,7 @@ class BelongsToManySelf extends BelongsToMany
      * @param  mixed  $attribute
      * @return mixed
      *
-     * @throws \Doctrine\Instantiator\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function getDictionaryKey($attribute)
     {
