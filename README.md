@@ -1,6 +1,7 @@
 # Laravel Many to Many Self Relationship
 
 [![Version](https://img.shields.io/badge/Version-2.0-brightgreen)](https://packagist.org/packages/kingmaker/laravel-many-to-many-self-relationship#2.0.0)
+![Packagist Downloads](https://img.shields.io/packagist/dm/kingmaker/laravel-many-to-many-self-relationship)
 [![Laravel](https://img.shields.io/badge/Laravel-6%2B-ff694b)](https://laravel.com/)
 [![Tests](https://img.shields.io/badge/Tests-passing-green)](tests)
 [![License](https://img.shields.io/badge/License-MIT-blue)](https://opensource.org/licenses/MIT)
@@ -149,3 +150,6 @@ The following Issues / Problems were found in this package or the underlying Dat
 Contributions are always welcome!
 
 Feel free to open Issues and submit **Pull Requests**
+
+You can also support me  
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/bgpratheep)
