@@ -3,6 +3,7 @@
 namespace Kingmaker\Illuminate\Eloquent\Relations\Tests;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,9 @@ trait ManyToManySelfTestCase
      * @var int
      */
     protected $user1_id, $user2_id, $user3_id, $user4_id;
+
+    /** @var ModelStub|null */
+    protected $testUser1, $testUser2, $testUser3;
 
     /** @test */
     public function related_model_can_be_retrieved_using_relationship()
@@ -199,6 +203,173 @@ trait ManyToManySelfTestCase
         $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends4->find($this->user3_id)->birth_at);
         $this->assertNull($friends4->find($this->user3_id)->age);
         $this->assertNull($friends4->find($this->user3_id)->email);
+    }
+
+    /** @test  */
+    public function it_can_sync_two_way_with_element_ids()
+    {
+        // Direct Testing
+        $this->initiateTestUsers();
+        $this->testUser1->friends()->sync([$this->testUser2->id, $this->testUser3->id]);
+        $syncResults = $this->testUser1->friends()->sync([$this->testUser3->id]);
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(1, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->first()->is($this->testUser3));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(0, $syncResults['attached']);
+        $this->assertCount(0, $syncResults['updated']);
+        $this->assertCount(1, $syncResults['detached']);
+
+
+        // Inverse Testing
+        $this->initiateTestUsers();
+        $this->testUser3->friends()->sync([$this->testUser2->id, $this->testUser1->id]);
+        $this->testUser2->friends()->attach($this->testUser1->id);
+        $syncResults = $this->testUser1->friends()->sync([$this->testUser3->id]);
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(1, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->first()->is($this->testUser3));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(0, $syncResults['attached']);
+        $this->assertCount(0, $syncResults['updated']);
+        $this->assertCount(1, $syncResults['detached']);
+    }
+
+    /** @test  */
+    public function it_can_sync_two_way_with_elements()
+    {
+        // Direct Testing
+        $this->initiateTestUsers();
+        $this->testUser1->friends()->sync(
+            EloquentCollection::make([$this->testUser2, $this->testUser3])
+        );
+        $syncResults = $this->testUser1->friends()->sync(
+            EloquentCollection::make([$this->testUser3])
+        );
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(1, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->first()->is($this->testUser3));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(0, $syncResults['attached']);
+        $this->assertCount(0, $syncResults['updated']);
+        $this->assertCount(1, $syncResults['detached']);
+
+
+        // Inverse Testing
+        $this->initiateTestUsers();
+        $this->testUser3->friends()->sync(
+            EloquentCollection::make([$this->testUser2, $this->testUser1])
+        );
+        $this->testUser2->friends()->attach($this->testUser1);
+        $syncResults = $this->testUser1->friends()->sync(
+            EloquentCollection::make([$this->testUser3])
+        );
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(1, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->first()->is($this->testUser3));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(0, $syncResults['attached']);
+        $this->assertCount(0, $syncResults['updated']);
+        $this->assertCount(1, $syncResults['detached']);
+    }
+
+    /** @test  */
+    public function it_can_sync_two_way_with_element_ids_with_corresponding_pivot_values()
+    {
+        // Direct Testing
+        $this->initiateTestUsers();
+        $testUser4 = ModelStub::create([
+            'name' => "test 4",
+            'age' => 44
+        ]);
+
+        $this->testUser1->friends()->sync([
+            $this->testUser2->id => [],
+            $this->testUser3->id => []
+        ]);
+        $syncResults = $this->testUser1->friends()->sync([
+            $this->testUser3->id => ['percentage' => 66],
+            $testUser4->id => ['percentage' => 10]
+        ]);
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(2, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->contains('id', $this->testUser3->id));
+        $this->assertTrue($testUser1Friends->contains('id', $testUser4->id));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(1, $syncResults['attached']);
+        $this->assertCount(1, $syncResults['updated']);
+        $this->assertCount(1, $syncResults['detached']);
+
+
+        // Inverse Testing
+        $this->initiateTestUsers();
+        $testUser5 = ModelStub::create([
+            'name' => "test 5",
+            'age' => 44
+        ]);
+
+        $this->testUser3->friends()->sync([
+            $this->testUser2->id => [],
+            $this->testUser1->id => []
+        ]);
+        $this->testUser2->friends()->attach($this->testUser1, []);
+        $syncResults = $this->testUser1->friends()->sync([
+            $this->testUser3->id => ['percentage' => 80],
+            $testUser5->id => ['percentage' => 20]
+        ]);
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(2, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->contains('id', $this->testUser3->id));
+        $this->assertTrue($testUser1Friends->contains('id', $testUser5->id));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(1, $syncResults['attached']);
+        $this->assertCount(1, $syncResults['updated']);
+        $this->assertCount(1, $syncResults['detached']);
+    }
+
+    /** @test  */
+    public function it_can_toggle_properly()
+    {
+        $this->initiateTestUsers();
+
+        $this->testUser1->friends()->attach($this->testUser3);
+        $this->testUser2->friends()->attach($this->testUser1);
+        $this->assertCount(2, $this->testUser1->friends()->get());
+
+        $toggleResult = $this->testUser1->friends()->toggle($this->testUser2);
+        $this->assertCount(1, $this->testUser1->friends()->get());
+        $this->assertArrayHasKey('attached', $toggleResult);
+        $this->assertArrayHasKey('detached', $toggleResult);
+        $this->assertCount(0, $toggleResult['attached']);
+        $this->assertCount(1, $toggleResult['detached']);
+        $this->assertContains($this->testUser2->id, $toggleResult['detached']);
+
+        $toggleResult = $this->testUser1->friends()->toggle(EloquentCollection::make([$this->testUser2, $this->testUser3]));
+        $this->assertCount(1, $this->testUser1->friends()->get());
+        $this->assertArrayHasKey('attached', $toggleResult);
+        $this->assertArrayHasKey('detached', $toggleResult);
+        $this->assertCount(1, $toggleResult['attached']);
+        $this->assertCount(1, $toggleResult['detached']);
+        $this->assertContains($this->testUser2->id, $toggleResult['attached']);
+        $this->assertContains($this->testUser3->id, $toggleResult['detached']);
     }
 
     /** @test */
@@ -484,6 +655,7 @@ trait ManyToManySelfTestCase
             $table->unsignedBigInteger('user2');
             $table->foreign('user2')
                 ->references('id')->on('users');
+            $table->integer('percentage')->nullable();
         });
 
         $this->user1_id = ModelStub::create([
@@ -514,6 +686,38 @@ trait ManyToManySelfTestCase
             ['user1' => $this->user2_id, 'user2' => $this->user3_id],
             ['user1' => $this->user3_id, 'user2' => $this->user4_id],
             ['user1' => $this->user4_id, 'user2' => $this->user2_id],
+        ]);
+    }
+
+    /**
+     * Initiate the Test Users for further Testing
+     */
+    protected function initiateTestUsers()
+    {
+        // Clearing away the existing Test Users
+        foreach ([$this->testUser1, $this->testUser2, $this->testUser3] as $testUser) {
+            if ($testUser !== null) {
+                /** @var ModelStub $testUser */
+                DB::table($testUser->friends()->getTable())
+                    ->where('user1', $testUser->id)
+                    ->orWhere('user2', $testUser->id)
+                    ->delete();
+
+                $testUser->delete();
+            }
+        }
+
+        $this->testUser1 = ModelStub::create([
+            'name' => 'test 1',
+            'age' => 18
+        ]);
+        $this->testUser2 = ModelStub::create([
+            'name' => 'test 2',
+            'age' => 22
+        ]);
+        $this->testUser3 = ModelStub::create([
+            'name' => 'test 3',
+            'age' => 33
         ]);
     }
 }
