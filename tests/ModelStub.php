@@ -55,6 +55,7 @@ class ModelStub extends Model
      */
     public function friends()
     {
-        return $this->belongsToManySelf('friends', 'user1', 'user2');
+        return $this->belongsToManySelf('friends', 'user1', 'user2')
+            ->withPivot('percentage');
     }
 }
