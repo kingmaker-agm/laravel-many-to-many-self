@@ -24,7 +24,7 @@ This package is available on specific Laravel versions.
 | --------------- | --------------- |
 | 1.x             | 6.20+ or 7.29+  |
 | 2.0.x           | 8.17 - 8.34     |
-| 2.1+            | 8.35+           |
+| 2.1+            | 8.35+ or 9+     |
 
 ## Usage
 Include the `HasBelongsToManySelfRelation` trait in the **Model class** and 
