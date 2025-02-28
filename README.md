@@ -1,6 +1,6 @@
 # Laravel Many to Many Self Relationship
 
-[![Version](https://img.shields.io/badge/Version-2.1-brightgreen)](https://packagist.org/packages/kingmaker/laravel-many-to-many-self-relationship#2.1.0)
+[![Version](https://img.shields.io/badge/Version-2.1-brightgreen)](https://packagist.org/packages/kingmaker/laravel-many-to-many-self-relationship)
 ![Packagist Downloads](https://img.shields.io/packagist/dm/kingmaker/laravel-many-to-many-self-relationship)
 [![Laravel](https://img.shields.io/badge/Laravel-6%2B-ff694b)](https://laravel.com/)
 [![Tests](https://img.shields.io/badge/Tests-passing-green)](tests)
