@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<phpunit verbose="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" colors="true" bootstrap="tests/bootstrap.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.1/phpunit.xsd" cacheDirectory=".phpunit.cache">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" colors="true" bootstrap="tests/bootstrap.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.1/phpunit.xsd" cacheDirectory=".phpunit.cache">
     <testsuites>
         <testsuite name="Live Integration Test">
             <directory suffix="Test.php">./tests</directory>

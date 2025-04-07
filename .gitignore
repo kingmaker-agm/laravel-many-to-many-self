@@ -15,3 +15,8 @@ composer.lock
 
 # Environment Variables
 .env
+.env.*
+!.env.example
+
+# File Backups
+**/*.bak

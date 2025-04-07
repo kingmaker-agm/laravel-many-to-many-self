@@ -7,16 +7,16 @@ use Orchestra\Testbench\TestCase as PhpUnitTestCase;
 
 abstract class TestCase extends PhpUnitTestCase
 {
-    protected function setUpTraits()
+    protected abstract function createDatabaseForManyToManySelf(): void;
+
+    protected abstract function seedDataForManyToManySelf(): void;
+
+    protected function setUp(): void
     {
-        $uses = parent::setUpTraits();
+        parent::setUp();
 
-        if (isset($uses[ManyToManySelfTestCase::class])) {
-            /** @var ManyToManySelfTestCase $this */
-            $this->createDatabaseForManyToManySelf();
-        }
-
-        return $uses;
+        $this->createDatabaseForManyToManySelf();
+        $this->seedDataForManyToManySelf();
     }
 
     protected function defineEnvironment($app)

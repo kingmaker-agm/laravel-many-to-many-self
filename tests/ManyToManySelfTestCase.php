@@ -8,6 +8,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 
 trait ManyToManySelfTestCase
 {
@@ -22,13 +23,16 @@ trait ManyToManySelfTestCase
     protected $testUser1, $testUser2, $testUser3;
 
     /** @test */
-    public function related_model_can_be_retrieved_using_relationship()
+    #[Test]
+    public function related_model_can_be_retrieved_using_relation()
     {
         $user1 = ModelStub::find($this->user1_id);
         $friends1 = $user1->friends;
         $this->assertCount(2, $friends1);
         $this->assertNotNull($friends1->find($this->user2_id), "The Friends of User 1 doesn't has the User 2");
         $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
+        $this->assertNull($friends1->find($this->user1_id), "The Friends of User 1 has the User 1");
+        $this->assertNull($friends1->find($this->user3_id), "The Friends of User 1 has the User 3");
 
         $user2 = ModelStub::find($this->user2_id);
         $friends2 = $user2->friends;
@@ -36,12 +40,15 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends2->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
         $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
         $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
+        $this->assertNull($friends2->find($this->user2_id), "The Friends of User 2 has the User 2");
 
         $user3 = ModelStub::find($this->user3_id);
         $friends3 = $user3->friends;
         $this->assertCount(2, $friends3);
         $this->assertNotNull($friends3->find($this->user2_id), "The Friends of User 3 doesn't has the User 2");
         $this->assertNotNull($friends3->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
+        $this->assertNull($friends3->find($this->user1_id), "The Friends of User 3 has the User 1");
+        $this->assertNull($friends3->find($this->user3_id), "The Friends of User 3 has the User 3");
 
         $user4 = ModelStub::find($this->user4_id);
         $friends4 = $user4->friends;
@@ -49,9 +56,48 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends4->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
         $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
         $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
+        $this->assertNull($friends4->find($this->user4_id), "The Friends of User 4 has the User 4");
     }
 
     /** @test */
+    #[Test]
+    public function related_model_can_be_retrieved_using_relationship_query_get()
+    {
+        $user1 = ModelStub::find($this->user1_id);
+        $friends1 = $user1->friends()->get();
+        $this->assertCount(2, $friends1);
+        $this->assertNotNull($friends1->find($this->user2_id), "The Friends of User 1 doesn't has the User 2");
+        $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
+        $this->assertNull($friends1->find($this->user1_id), "The Friends of User 1 has the User 1");
+        $this->assertNull($friends1->find($this->user3_id), "The Friends of User 1 has the User 3");
+
+        $user2 = ModelStub::find($this->user2_id);
+        $friends2 = $user2->friends()->get();
+        $this->assertCount(3, $friends2);
+        $this->assertNotNull($friends2->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
+        $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
+        $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
+        $this->assertNull($friends2->find($this->user2_id), "The Friends of User 2 has the User 2");
+
+        $user3 = ModelStub::find($this->user3_id);
+        $friends3 = $user3->friends()->get();
+        $this->assertCount(2, $friends3);
+        $this->assertNotNull($friends3->find($this->user2_id), "The Friends of User 3 doesn't has the User 2");
+        $this->assertNotNull($friends3->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
+        $this->assertNull($friends3->find($this->user1_id), "The Friends of User 3 has the User 1");
+        $this->assertNull($friends3->find($this->user3_id), "The Friends of User 3 has the User 3");
+
+        $user4 = ModelStub::find($this->user4_id);
+        $friends4 = $user4->friends()->get();
+        $this->assertCount(3, $friends4);
+        $this->assertNotNull($friends4->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
+        $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
+        $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
+        $this->assertNull($friends4->find($this->user4_id), "The Friends of User 4 has the User 4");
+    }
+
+    /** @test */
+    #[Test]
     public function relation_can_be_eager_loaded()
     {
         $users = ModelStub::with('friends')->get();
@@ -90,78 +136,121 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    #[Test]
     public function eager_loading_can_be_done_with_only_few_selected_columns()
     {
         $users = ModelStub::with('friends:id,name,birth_at')->get();
 
+
         $user1 = $users->find($this->user1_id);
         $friends1 = $user1->friends;
         $this->assertCount(2, $friends1);
-        $this->assertNotNull($friends1->find($this->user2_id), "The Friends of User 1 doesn't has the User 2");
-        $this->assertEquals("User 2", $friends1->find($this->user2_id)->name);
-        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends1->find($this->user2_id)->birth_at);
-        $this->assertNull($friends1->find($this->user2_id)->age);
-        $this->assertNull($friends1->find($this->user2_id)->email);
-        $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
-        $this->assertEquals("User 4", $friends1->find($this->user4_id)->name);
-        $this->assertNull($friends1->find($this->user4_id)->birth_at);
-        $this->assertNull($friends1->find($this->user4_id)->age);
-        $this->assertNull($friends1->find($this->user4_id)->email);
+        $this->assertNull($friends1->find($this->user3_id), "The Friends of User 1 has the User 3");
+        $this->assertNull($friends1->find($this->user1_id), "The Friends of User 1 has the User 1");
+
+
+        $friends1_user2 = $friends1->find($this->user2_id);
+        $this->assertNotNull($friends1_user2, "The Friends of User 1 doesn't has the User 2");
+        $this->assertEquals(2, $friends1_user2->id);
+        $this->assertEquals("User 2", $friends1_user2->name);
+        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends1_user2->birth_at);
+        $this->assertNull($friends1_user2->age);
+        $this->assertNull($friends1_user2->email);
+
+        $friends1_user4 = $friends1->find($this->user4_id);
+        $this->assertNotNull($friends1_user4, "The Friends of User 1 doesn't has the User 4");
+        $this->assertEquals(4, $friends1_user4->id);
+        $this->assertEquals("User 4", $friends1_user4->name);
+        $this->assertNull($friends1_user4->birth_at);
+        $this->assertNull($friends1_user4->age);
+        $this->assertNull($friends1_user4->email);
+
 
         $user2 = $users->find($this->user2_id);
         $friends2 = $user2->friends;
         $this->assertCount(3, $friends2);
-        $this->assertNotNull($friends2->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
-        $this->assertEquals("User 1", $friends2->find($this->user1_id)->name);
-        $this->assertEquals(Carbon::create(1994,3,21, 4, 36), $friends2->find($this->user1_id)->birth_at);
-        $this->assertNull($friends2->find($this->user1_id)->age);
-        $this->assertNull($friends2->find($this->user1_id)->email);
-        $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
-        $this->assertEquals("User 3", $friends2->find($this->user3_id)->name);
-        $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends2->find($this->user3_id)->birth_at);
-        $this->assertNull($friends2->find($this->user3_id)->age);
-        $this->assertNull($friends2->find($this->user3_id)->email);
-        $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
-        $this->assertEquals("User 4", $friends2->find($this->user4_id)->name);
-        $this->assertNull($friends2->find($this->user4_id)->birth_at);
-        $this->assertNull($friends2->find($this->user4_id)->age);
-        $this->assertNull($friends2->find($this->user4_id)->email);
+        $this->assertNull($friends2->find($this->user2_id), "The Friends of User 2 has the User 2");
+
+        $friends2_user1 = $friends2->find($this->user1_id);
+        $this->assertNotNull($friends2_user1, "The Friends of User 2 doesn't has the User 1");
+        $this->assertEquals(1, $friends2_user1->id);
+        $this->assertEquals("User 1", $friends2_user1->name);
+        $this->assertEquals(Carbon::create(1994,3,21, 4, 36), $friends2_user1->birth_at);
+        $this->assertNull($friends2_user1->age);
+        $this->assertNull($friends2_user1->email);
+
+        $friends2_user3 = $friends2->find($this->user3_id);
+        $this->assertNotNull($friends2_user3, "The Friends of User 2 doesn't has the User 3");
+        $this->assertEquals(3, $friends2_user3->id);
+        $this->assertEquals("User 3", $friends2_user3->name);
+        $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends2_user3->birth_at);
+        $this->assertNull($friends2_user3->age);
+        $this->assertNull($friends2_user3->email);
+
+        $friends2_user4 = $friends2->find($this->user4_id);
+        $this->assertNotNull($friends2_user4, "The Friends of User 2 doesn't has the User 4");
+        $this->assertEquals(4, $friends2_user4->id);
+        $this->assertEquals("User 4", $friends2_user4->name);
+        $this->assertNull($friends2_user4->birth_at);
+        $this->assertNull($friends2_user4->age);
+        $this->assertNull($friends2_user4->email);
+
 
         $user3 = $users->find($this->user3_id);
         $friends3 = $user3->friends;
         $this->assertCount(2, $friends3);
-        $this->assertNotNull($friends3->find($this->user2_id), "The Friends of User 3 doesn't has the User 2");
-        $this->assertEquals("User 2", $friends3->find($this->user2_id)->name);
-        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends3->find($this->user2_id)->birth_at);
-        $this->assertNull($friends3->find($this->user2_id)->age);
-        $this->assertNull($friends3->find($this->user2_id)->email);
-        $this->assertNotNull($friends3->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
-        $this->assertEquals("User 4", $friends3->find($this->user4_id)->name);
-        $this->assertNull($friends3->find($this->user4_id)->birth_at);
-        $this->assertNull($friends3->find($this->user4_id)->age);
-        $this->assertNull($friends3->find($this->user4_id)->email);
+        $this->assertNull($friends3->find($this->user1_id), "The Friends of User 3 has the User 1");
+        $this->assertNull($friends3->find($this->user3_id), "The Friends of User 3 has the User 3");
+
+        $friends3_user2 = $friends3->find($this->user2_id);
+        $this->assertNotNull($friends3_user2, "The Friends of User 3 doesn't has the User 2");
+        $this->assertEquals(2, $friends3_user2->id);
+        $this->assertEquals("User 2", $friends3_user2->name);
+        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends3_user2->birth_at);
+        $this->assertNull($friends3_user2->age);
+        $this->assertNull($friends3_user2->email);
+
+        $friends3_user4 = $friends3->find($this->user4_id);
+        $this->assertNotNull($friends3_user4, "The Friends of User 3 doesn't has the User 4");
+        $this->assertEquals(4, $friends3_user4->id);
+        $this->assertEquals("User 4", $friends3_user4->name);
+        $this->assertNull($friends3_user4->birth_at);
+        $this->assertNull($friends3_user4->age);
+        $this->assertNull($friends3_user4->email);
+
 
         $user4 = $users->find($this->user4_id);
         $friends4 = $user4->friends;
         $this->assertCount(3, $friends4);
-        $this->assertNotNull($friends4->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
-        $this->assertEquals("User 1", $friends4->find($this->user1_id)->name);
-        $this->assertEquals(Carbon::create(1994,3,21, 4, 36), $friends4->find($this->user1_id)->birth_at);
-        $this->assertNull($friends4->find($this->user1_id)->age);
-        $this->assertNull($friends4->find($this->user1_id)->email);
-        $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
-        $this->assertEquals("User 2", $friends4->find($this->user2_id)->name);
-        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends4->find($this->user2_id)->birth_at);
-        $this->assertNull($friends4->find($this->user2_id)->age);
-        $this->assertNull($friends4->find($this->user2_id)->email);
-        $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
-        $this->assertEquals("User 3", $friends4->find($this->user3_id)->name);
-        $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends4->find($this->user3_id)->birth_at);
-        $this->assertNull($friends4->find($this->user3_id)->age);
-        $this->assertNull($friends4->find($this->user3_id)->email);
+        $this->assertNull($friends4->find($this->user4_id), "The Friends of User 4 has the User 4");
+
+        $friends4_user1 = $friends4->find($this->user1_id);
+        $this->assertNotNull($friends4_user1, "The Friends of User 4 doesn't has the User 1");
+        $this->assertEquals(1, $friends4_user1->id);
+        $this->assertEquals("User 1", $friends4_user1->name);
+        $this->assertEquals(Carbon::create(1994,3,21, 4, 36), $friends4_user1->birth_at);
+        $this->assertNull($friends4_user1->age);
+        $this->assertNull($friends4_user1->email);
+
+        $friends4_user2 = $friends4->find($this->user2_id);
+        $this->assertNotNull($friends4_user2, "The Friends of User 4 doesn't has the User 2");
+        $this->assertEquals(2, $friends4_user2->id);
+        $this->assertEquals("User 2", $friends4_user2->name);
+        $this->assertEquals(Carbon::create(1988,8,7, 18, 14), $friends4_user2->birth_at);
+        $this->assertNull($friends4_user2->age);
+        $this->assertNull($friends4_user2->email);
+
+        $friends4_user3 = $friends4->find($this->user3_id);
+        $this->assertNotNull($friends4_user3, "The Friends of User 4 doesn't has the User 3");
+        $this->assertEquals(3, $friends4_user3->id);
+        $this->assertEquals("User 3", $friends4_user3->name);
+        $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends4_user3->birth_at);
+        $this->assertNull($friends4_user3->age);
+        $this->assertNull($friends4_user3->email);
     }
 
     /** @test */
+    #[Test]
     public function nested_eager_loading_can_be_done_with_only_few_selected_columns()
     {
         $user = ModelStub::with('friends.friends:id,name,birth_at')->find($this->user1_id);
@@ -205,11 +294,125 @@ trait ManyToManySelfTestCase
         $this->assertNull($friends4->find($this->user3_id)->email);
     }
 
+    /** @test */
+    #[Test]
+    public function it_can_attach_properly() {
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2);
+        $this->assertCount(1, $this->testUser1->friends()->get());
+        $this->assertTrue($this->testUser1->friends()->get()->first()->is($this->testUser2));
+
+        $this->initiateFurtherTestUsers();
+        $this->testUser2->friends()->attach($this->testUser1);
+        $this->testUser1->friends()->attach($this->testUser3);
+        $this->assertCount(2, $this->testUser1->friends()->get());
+        $this->assertTrue($this->testUser1->friends()->get()->contains($this->testUser2));
+        $this->assertTrue($this->testUser1->friends()->get()->contains($this->testUser3));
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_attach_duplicate_pivots_when_attached_again()
+    {
+        // Same Attachment
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2);
+        $this->testUser1->friends()->attach($this->testUser2);
+
+        $this->assertCount(2, $this->testUser1->friends()->get());
+        $this->assertTrue($this->testUser1->friends()->get()->contains($this->testUser2));
+        $this->assertFalse($this->testUser1->friends()->get()->contains($this->testUser3));
+        $this->assertCount(2, $this->testUser1->friends()->get()->where('id', $this->testUser2->id));
+
+        // Different Attachment
+        $this->initiateFurtherTestUsers();
+        $this->testUser2->friends()->attach($this->testUser1);
+        $this->testUser1->friends()->attach($this->testUser2);
+
+        $this->assertCount(2, $this->testUser1->friends()->get());
+        $this->assertTrue($this->testUser1->friends()->get()->contains($this->testUser2));
+        $this->assertFalse($this->testUser1->friends()->get()->contains($this->testUser3));
+        $this->assertCount(2, $this->testUser1->friends()->get()->where('id', $this->testUser2->id));
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_attach_duplicate_pivots_when_attached_with_pivots_again()
+    {
+        // Same Attachment
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2, ['percentage' => 10]);
+        $this->testUser1->friends()->attach($this->testUser2, ['percentage' => 20]);
+
+        $this->assertCount(2, $this->testUser1->friends()->get());
+        $this->assertTrue($this->testUser1->friends()->get()->contains($this->testUser2));
+        $this->assertFalse($this->testUser1->friends()->get()->contains($this->testUser3));
+        $this->assertCount(2, $this->testUser1->friends()->get()->where('id', $this->testUser2->id));
+        $this->testUser1->friends()->get()->each(function ($friend, int $index) {
+            $this->assertEquals($index == 0 ? 10 : 20, $friend->pivot->percentage);
+        });
+
+        // Different Attachment
+        $this->initiateFurtherTestUsers();
+        $this->testUser2->friends()->attach($this->testUser1, ['percentage' => 30]);
+        $this->testUser1->friends()->attach($this->testUser2, ['percentage' => 40]);
+
+        $this->assertCount(2, $this->testUser1->friends()->get());
+        $this->assertTrue($this->testUser1->friends()->get()->contains($this->testUser2));
+        $this->assertFalse($this->testUser1->friends()->get()->contains($this->testUser3));
+        $this->assertCount(2, $this->testUser1->friends()->get()->where('id', $this->testUser2->id));
+        $this->testUser1->friends()->get()->each(function ($friend, int $index) {
+            $this->assertEquals($index == 0 ? 30 : 40, $friend->pivot->percentage);
+        });
+    }
+
     /** @test  */
+    #[Test]
+    public function it_can_detach_properly()
+    {
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2);
+        $this->testUser1->friends()->attach($this->testUser3);
+        $detached = $this->testUser1->friends()->detach($this->testUser2);
+
+        $this->assertCount(1, $this->testUser1->friends()->get());
+        $this->assertTrue($this->testUser1->friends()->get()->contains($this->testUser3));
+        $this->assertFalse($this->testUser1->friends()->get()->contains($this->testUser2));
+        $this->assertEquals(1, $detached);
+    }
+
+    /** @test  */
+    #[Test]
+    public function it_can_detach_properly_for_double_attachment()
+    {
+        // Direct Attchment
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2);
+        $this->testUser1->friends()->attach($this->testUser2);
+        $detached = $this->testUser1->friends()->detach($this->testUser2);
+
+        $this->assertCount(0, $this->testUser1->friends()->get());
+        $this->assertFalse($this->testUser1->friends()->get()->contains($this->testUser2));
+        $this->assertEquals(2, $detached);
+
+
+        // Mixed Attachment
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2);
+        $this->testUser2->friends()->attach($this->testUser1);
+        $detached = $this->testUser1->friends()->detach($this->testUser2);
+
+        $this->assertCount(0, $this->testUser1->friends()->get());
+        $this->assertFalse($this->testUser1->friends()->get()->contains($this->testUser2));
+        $this->assertEquals(2, $detached);
+    }
+
+    /** @test  */
+    #[Test]
     public function it_can_sync_two_way_with_element_ids()
     {
         // Direct Testing
-        $this->initiateTestUsers();
+        $this->initiateFurtherTestUsers();
         $this->testUser1->friends()->sync([$this->testUser2->id, $this->testUser3->id]);
         $syncResults = $this->testUser1->friends()->sync([$this->testUser3->id]);
 
@@ -225,7 +428,7 @@ trait ManyToManySelfTestCase
 
 
         // Inverse Testing
-        $this->initiateTestUsers();
+        $this->initiateFurtherTestUsers();
         $this->testUser3->friends()->sync([$this->testUser2->id, $this->testUser1->id]);
         $this->testUser2->friends()->attach($this->testUser1->id);
         $syncResults = $this->testUser1->friends()->sync([$this->testUser3->id]);
@@ -242,10 +445,11 @@ trait ManyToManySelfTestCase
     }
 
     /** @test  */
+    #[Test]
     public function it_can_sync_two_way_with_elements()
     {
         // Direct Testing
-        $this->initiateTestUsers();
+        $this->initiateFurtherTestUsers();
         $this->testUser1->friends()->sync(
             EloquentCollection::make([$this->testUser2, $this->testUser3])
         );
@@ -265,7 +469,7 @@ trait ManyToManySelfTestCase
 
 
         // Inverse Testing
-        $this->initiateTestUsers();
+        $this->initiateFurtherTestUsers();
         $this->testUser3->friends()->sync(
             EloquentCollection::make([$this->testUser2, $this->testUser1])
         );
@@ -286,10 +490,89 @@ trait ManyToManySelfTestCase
     }
 
     /** @test  */
+    #[Test]
+    public function it_can_sync_two_way_without_detaching_using_element_ids()
+    {
+        // Direct Testing
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->sync([$this->testUser2->id, $this->testUser3->id]);
+        $syncResults = $this->testUser1->friends()->syncWithoutDetaching([$this->testUser3->id]);
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(2, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->find($this->testUser3)->is($this->testUser3));
+        $this->assertTrue($testUser1Friends->find($this->testUser2)->is($this->testUser2));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(0, $syncResults['attached']);
+        $this->assertCount(0, $syncResults['updated']);
+        $this->assertCount(0, $syncResults['detached']);
+
+
+        // Inverse Testing
+        $this->initiateFurtherTestUsers();
+        $this->testUser3->friends()->sync([$this->testUser2->id]);
+        $this->testUser2->friends()->attach($this->testUser1->id);
+        $syncResults = $this->testUser1->friends()->syncWithoutDetaching([$this->testUser3->id]);
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(2, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->find($this->testUser2)->is($this->testUser2));
+        $this->assertTrue($testUser1Friends->find($this->testUser3)->is($this->testUser3));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(1, $syncResults['attached']);
+        $this->assertCount(0, $syncResults['updated']);
+        $this->assertCount(0, $syncResults['detached']);
+    }
+
+    /** @test  */
+    #[Test]
+    public function it_can_sync_two_way_without_detaching_using_elements()
+    {
+        // Direct Testing
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->sync(EloquentCollection::make([$this->testUser2, $this->testUser3]));
+        $syncResults = $this->testUser1->friends()->syncWithoutDetaching(EloquentCollection::make([$this->testUser3]));
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(2, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->find($this->testUser3)->is($this->testUser3));
+        $this->assertTrue($testUser1Friends->find($this->testUser2)->is($this->testUser2));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(0, $syncResults['attached']);
+        $this->assertCount(0, $syncResults['updated']);
+        $this->assertCount(0, $syncResults['detached']);
+
+
+        // Inverse Testing
+        $this->initiateFurtherTestUsers();
+        $this->testUser3->friends()->sync(EloquentCollection::make([$this->testUser2]));
+        $this->testUser2->friends()->attach($this->testUser1);
+        $syncResults = $this->testUser1->friends()->syncWithoutDetaching(EloquentCollection::make([$this->testUser3]));
+
+        $testUser1Friends = $this->testUser1->friends()->get();
+        $this->assertCount(2, $testUser1Friends);
+        $this->assertTrue($testUser1Friends->find($this->testUser2)->is($this->testUser2));
+        $this->assertTrue($testUser1Friends->find($this->testUser3)->is($this->testUser3));
+        $this->assertArrayHasKey('attached', $syncResults);
+        $this->assertArrayHasKey('detached', $syncResults);
+        $this->assertArrayHasKey('updated', $syncResults);
+        $this->assertCount(1, $syncResults['attached']);
+        $this->assertCount(0, $syncResults['updated']);
+        $this->assertCount(0, $syncResults['detached']);
+    }
+
+    /** @test  */
+    #[Test]
     public function it_can_sync_two_way_with_element_ids_with_corresponding_pivot_values()
     {
         // Direct Testing
-        $this->initiateTestUsers();
+        $this->initiateFurtherTestUsers();
         $testUser4 = ModelStub::create([
             'name' => "test 4",
             'age' => 44
@@ -317,7 +600,7 @@ trait ManyToManySelfTestCase
 
 
         // Inverse Testing
-        $this->initiateTestUsers();
+        $this->initiateFurtherTestUsers();
         $testUser5 = ModelStub::create([
             'name' => "test 5",
             'age' => 44
@@ -346,9 +629,10 @@ trait ManyToManySelfTestCase
     }
 
     /** @test  */
+    #[Test]
     public function it_can_toggle_properly()
     {
-        $this->initiateTestUsers();
+        $this->initiateFurtherTestUsers();
 
         $this->testUser1->friends()->attach($this->testUser3);
         $this->testUser2->friends()->attach($this->testUser1);
@@ -373,6 +657,7 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    #[Test]
     public function nested_relations_can_be_eager_loaded()
     {
         $users = ModelStub::with('friends', 'friends.friends')->get();
@@ -465,6 +750,7 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    #[Test]
     public function it_can_load_other_aggregates_for_the_relation()
     {
         [$major, $minor, $patch] = laravel_version();
@@ -506,6 +792,7 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    #[Test]
     public function it_can_load_the_count_for_the_relation()
     {
         $users = ModelStub::withCount('friends')->get();
@@ -517,6 +804,7 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    #[Test]
     public function relation_can_be_paired_with_where_conditions()
     {
         $user1 = ModelStub::find($this->user1_id);
@@ -538,6 +826,7 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    #[Test]
     public function relation_can_be_paired_with_the_order_by_clauses()
     {
         $user1 = ModelStub::find($this->user1_id);
@@ -561,6 +850,7 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    #[Test]
     public function it_can_be_used_in_where_has_relationship_eloquent_query()
     {
         $users_friend_with_user3 = ModelStub::whereHas('friends', function (Builder $friendQuery) {
@@ -585,6 +875,7 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    #[Test]
     public function it_can_be_used_in_has_relationship_count_eloquent_query()
     {
         $user_with_more_than_2friends = ModelStub::has('friends', '>', 2)->get();
@@ -612,6 +903,7 @@ trait ManyToManySelfTestCase
     }
 
     /** @test */
+    #[Test]
     public function it_can_have_nested_repeated_where_has_eloquent_query()
     {
         $user5 = ModelStub::create([
@@ -634,8 +926,14 @@ trait ManyToManySelfTestCase
         $this->assertNull($users->find($this->user3_id));
     }
 
-    protected function createDatabaseForManyToManySelf()
-    {
+    /**
+     * Refresh the Database Schema
+     *
+     * Existing Database Tables will be dropped, if they already exists.
+     * Create the Database Tables.
+     * @return void
+     */
+    protected function refreshDatabaseSchema(): void {
         Schema::dropIfExists('friends');
         Schema::dropIfExists('users');
 
@@ -657,7 +955,26 @@ trait ManyToManySelfTestCase
                 ->references('id')->on('users');
             $table->integer('percentage')->nullable();
         });
+    }
 
+    protected function createDatabaseForManyToManySelf(): void
+    {
+        $this->refreshDatabaseSchema();
+    }
+
+    protected function seedDataForManyToManySelf(): void
+    {
+        $this->initiateInitialTestUsers();
+    }
+
+    /**
+     * Initiate Initial Test Users
+     *
+     * Initiate the Initial Users for the base Test cases.
+     * @return void
+     */
+    protected function initiateInitialTestUsers(): void
+    {
         $this->user1_id = ModelStub::create([
             'name' => 'User 1',
             'age' => 18,
@@ -691,8 +1008,10 @@ trait ManyToManySelfTestCase
 
     /**
      * Initiate the Test Users for further Testing
+     *
+     * Initiate the Users for further Test cases.
      */
-    protected function initiateTestUsers()
+    protected function initiateFurtherTestUsers()
     {
         // Clearing away the existing Test Users
         foreach ([$this->testUser1, $this->testUser2, $this->testUser3] as $testUser) {
