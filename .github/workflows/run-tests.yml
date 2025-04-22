@@ -44,7 +44,7 @@ jobs:
 
       # SQL Server service
       mssql:
-        image: rapidfort/microsoft-sql-server-2019-ib:latest
+        image: mcr.microsoft.com/mssql/server:2019-CU14-ubuntu-20.04
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: YourStrong(!)Passw0rd
