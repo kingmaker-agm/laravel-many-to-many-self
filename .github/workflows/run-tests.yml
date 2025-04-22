@@ -42,6 +42,25 @@ jobs:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=5
 
+      # SQL Server with modified configuration
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: YourStrong!Passw0rd
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+        options: >
+          --name=sql1
+          --hostname=sql1
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -Q 'SELECT 1' || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          --cap-add SYS_PTRACE
+          --security-opt seccomp=unconfined
+
     strategy:
       fail-fast: false
       matrix:
@@ -71,47 +90,26 @@ jobs:
           coverage: xdebug
           tools: composer:v2
 
-      # Setup SQL Server separately instead of as a service
-      - name: Setup SQL Server
+      - name: Install SQL Server drivers and tools
         run: |
-          # Add Microsoft keys and repository
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/20.04/mssql-server-2019.list | sudo tee /etc/apt/sources.list.d/mssql-server-2019.list
-          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-
-          # Install SQL Server
+          # Install ODBC driver and tools for connecting PHP to SQL Server
+          sudo curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          sudo curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
           sudo apt-get update
-          sudo apt-get install -y mssql-server
-          sudo apt-get install -y mssql-tools unixodbc-dev
-
-          # Setup SQL Server with SA password
-          sudo MSSQL_SA_PASSWORD=YourStrong!Passw0rd MSSQL_PID=Developer /opt/mssql/bin/mssql-conf -n setup accept-eula
-
-          # Start service
-          sudo systemctl start mssql-server
-
-          # Add SQL Server tools to path
-          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
-          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
-          source ~/.bashrc
-
-          # Wait for SQL Server to start
-          sleep 10
-
-          # Verify SQL Server is running
-          sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q "SELECT @@VERSION"
-
-      - name: Install SQL Server ODBC drivers
-        run: |
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools
-          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
-          source ~/.bashrc
 
       - name: Install dependencies
         run: |
           composer require "illuminate/database:${{ matrix.laravel-versions }}" --no-interaction --no-update
           composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Verify SQL Server connection
+        run: |
+          # Wait a moment to ensure SQL Server is fully initialized
+          sleep 10
+          # Display SQL Server version to confirm connectivity
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -Q "SELECT @@VERSION"
 
       - name: Wait for databases to be ready
         run: |
