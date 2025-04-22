@@ -1,0 +1,107 @@
+name: Run PHPUnit Tests
+
+on:
+  push:
+    branches: [ main, master, develop, "2.1+", "2.0", "1.x" ]
+  pull_request:
+    branches: [ main, master, develop, "2.1+" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      # MySQL service
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      # PostgreSQL service
+      postgres:
+        image: postgres:17.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=5
+
+      # SQL Server service
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: YourStrong!Passw0rd
+        ports:
+          - 1433:1433
+        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q 'SELECT 1'" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: ['8.0', '8.1', '8.2', '8.3', '8.4']
+        laravel-versions: ['8.*', '9.*', '10.*', '11.*', '12.*']
+        exclude:
+          # Exclude incompatible PHP and Laravel combinations
+          - php-versions: '8.0'
+            laravel-versions: ['10.*', '11.*', '12.*']
+          - php-versions: '8.1'
+            laravel-versions: ['11.*', '12.*']
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, pdo, pdo_mysql, pdo_sqlite, pdo_sqlsrv, pdo_pgsql, sqlite3, sqlsrv
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: |
+          composer require "illuminate/database:${{ matrix.laravel-versions }}" --no-interaction --no-update
+          composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Install SQL Server ODBC Driver
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+          apt-get update
+          ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
+
+      - name: Wait for databases to be ready
+        run: |
+          # Wait for MySQL
+          timeout 15s bash -c "until mysql -h127.0.0.1 -uroot -ppassword -e 'SELECT 1'; do sleep 1; done"
+          # Wait for PostgreSQL
+          timeout 15s bash -c "until PGPASSWORD=password psql -h localhost -U postgres -d test_db -c 'SELECT 1'; do sleep 1; done"
+          # Wait for SQL Server - already handled by health check, but could add additional check here
+
+      - name: Run tests
+        run: vendor/bin/phpunit --coverage-text
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+          MYSQL_DATABASE: test_db
+          MYSQL_USERNAME: root
+          MYSQL_PASSWORD: password
+
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DATABASE: test_db
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
+
+          SQL_SERVER_HOST: localhost
+          SQL_SERVER_PORT: 1433
+          SQL_SERVER_DATABASE: master
+          SQL_SERVER_USERNAME: sa
+          SQL_SERVER_PASSWORD: YourStrong!Passw0rd
