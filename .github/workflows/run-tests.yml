@@ -2,9 +2,19 @@ name: Run PHPUnit Tests
 
 on:
   push:
-    branches: [ main, master, develop, "2.1+", "2.0", "1.x" ]
+    branches:
+      - main
+      - master
+      - develop
+      - '2.1+'
+      - '2.0'
+      - '1.x'
   pull_request:
-    branches: [ main, master, develop, "2.1+" ]
+    branches:
+      - main
+      - master
+      - develop
+      - '2.1+'
 
 jobs:
   test:
@@ -50,9 +60,15 @@ jobs:
         exclude:
           # Exclude incompatible PHP and Laravel combinations
           - php-versions: '8.0'
-            laravel-versions: ['10.*', '11.*', '12.*']
+            laravel-versions: '10.*'
+          - php-versions: '8.0'
+            laravel-versions: '11.*'
+          - php-versions: '8.0'
+            laravel-versions: '12.*'
           - php-versions: '8.1'
-            laravel-versions: ['11.*', '12.*']
+            laravel-versions: '11.*'
+          - php-versions: '8.1'
+            laravel-versions: '12.*'
 
     steps:
       - uses: actions/checkout@v3
