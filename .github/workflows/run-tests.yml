@@ -6,7 +6,7 @@ on:
       - main
       - master
       - develop
-      - '2.1+'
+      - '2.1\+'
       - '2.0'
       - '1.x'
   pull_request:
@@ -14,7 +14,7 @@ on:
       - main
       - master
       - develop
-      - '2.1+'
+      - '2.1\+'
 
 jobs:
   test:
@@ -88,10 +88,10 @@ jobs:
 
       - name: Install SQL Server ODBC Driver
         run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
-          apt-get update
-          ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
+          sudo curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          sudo curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
 
       - name: Wait for databases to be ready
         run: |
