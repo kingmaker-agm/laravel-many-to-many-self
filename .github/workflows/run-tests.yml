@@ -78,6 +78,15 @@ jobs:
           sa-password: YourStrong!Passw0rd
           version: 2019
 
+      - name: Install SQL Server drivers and tools
+        run: |
+          # Install ODBC driver and tools for connecting PHP to SQL Server
+          sudo curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          sudo curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools
+
       - name: Install dependencies
         run: |
           composer require "illuminate/database:${{ matrix.laravel-versions }}" --no-interaction --no-update
