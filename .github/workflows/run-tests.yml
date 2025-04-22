@@ -111,7 +111,7 @@ jobs:
           timeout 15s bash -c "until PGPASSWORD=password psql -h localhost -U postgres -d test_db -c 'SELECT 1'; do sleep 1; done"
 
       - name: Run tests
-        run: vendor/bin/phpunit --coverage-text
+        run: vendor/bin/phpunit
         env:
           MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
