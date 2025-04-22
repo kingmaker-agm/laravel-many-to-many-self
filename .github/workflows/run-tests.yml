@@ -44,10 +44,10 @@ jobs:
 
       # SQL Server service
       mssql:
-        image: mcr.microsoft.com/mssql/server:2019-latest
+        image: rapidfort/microsoft-sql-server-2019-ib:latest
         env:
           ACCEPT_EULA: Y
-          SA_PASSWORD: YourStrong!Passw0rd
+          SA_PASSWORD: YourStrong(!)Passw0rd
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q 'SELECT 1'" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -120,4 +120,4 @@ jobs:
           SQL_SERVER_PORT: 1433
           SQL_SERVER_DATABASE: master
           SQL_SERVER_USERNAME: sa
-          SQL_SERVER_PASSWORD: YourStrong!Passw0rd
+          SQL_SERVER_PASSWORD: YourStrong(!)Passw0rd
