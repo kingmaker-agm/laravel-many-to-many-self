@@ -33,7 +33,7 @@ jobs:
 
       # PostgreSQL service
       postgres:
-        image: postgres:17.4
+        image: postgres:15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -41,16 +41,6 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=5
-
-      # SQL Server service
-      mssql:
-        image: mcr.microsoft.com/mssql/server:2019-CU14-ubuntu-20.04
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: YourStrong(!)Passw0rd
-        ports:
-          - 1433:1433
-        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q 'SELECT 1'" --health-interval=10s --health-timeout=5s --health-retries=3
 
     strategy:
       fail-fast: false
@@ -81,17 +71,47 @@ jobs:
           coverage: xdebug
           tools: composer:v2
 
+      # Setup SQL Server separately instead of as a service
+      - name: Setup SQL Server
+        run: |
+          # Add Microsoft keys and repository
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/20.04/mssql-server-2019.list | sudo tee /etc/apt/sources.list.d/mssql-server-2019.list
+          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+
+          # Install SQL Server
+          sudo apt-get update
+          sudo apt-get install -y mssql-server
+          sudo apt-get install -y mssql-tools unixodbc-dev
+
+          # Setup SQL Server with SA password
+          sudo MSSQL_SA_PASSWORD=YourStrong!Passw0rd MSSQL_PID=Developer /opt/mssql/bin/mssql-conf -n setup accept-eula
+
+          # Start service
+          sudo systemctl start mssql-server
+
+          # Add SQL Server tools to path
+          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
+          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+          source ~/.bashrc
+
+          # Wait for SQL Server to start
+          sleep 10
+
+          # Verify SQL Server is running
+          sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q "SELECT @@VERSION"
+
+      - name: Install SQL Server ODBC drivers
+        run: |
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools
+          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+          source ~/.bashrc
+
       - name: Install dependencies
         run: |
           composer require "illuminate/database:${{ matrix.laravel-versions }}" --no-interaction --no-update
           composer update --prefer-dist --no-interaction --no-progress
-
-      - name: Install SQL Server ODBC Driver
-        run: |
-          sudo curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          sudo curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
 
       - name: Wait for databases to be ready
         run: |
@@ -99,7 +119,6 @@ jobs:
           timeout 15s bash -c "until mysql -h127.0.0.1 -uroot -ppassword -e 'SELECT 1'; do sleep 1; done"
           # Wait for PostgreSQL
           timeout 15s bash -c "until PGPASSWORD=password psql -h localhost -U postgres -d test_db -c 'SELECT 1'; do sleep 1; done"
-          # Wait for SQL Server - already handled by health check, but could add additional check here
 
       - name: Run tests
         run: vendor/bin/phpunit --coverage-text
@@ -120,4 +139,4 @@ jobs:
           SQL_SERVER_PORT: 1433
           SQL_SERVER_DATABASE: master
           SQL_SERVER_USERNAME: sa
-          SQL_SERVER_PASSWORD: YourStrong(!)Passw0rd
+          SQL_SERVER_PASSWORD: YourStrong!Passw0rd
