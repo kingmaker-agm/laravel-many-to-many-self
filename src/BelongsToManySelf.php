@@ -162,8 +162,10 @@ class BelongsToManySelf extends BelongsToMany
             $keys
         );
 
-        $this->addBinding($keys);
-        $this->addBinding($keys);
+        if ($whereIn === 'whereIn') {
+            $this->addBinding($keys);
+            $this->addBinding($keys);
+        }
     }
 
     /**
