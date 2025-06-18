@@ -151,14 +151,19 @@ class BelongsToManySelf extends BelongsToMany
     {
         $whereIn = $this->whereInMethod($this->parent, $this->parentKey);
 
+        $keys = $this->getKeys($models, $this->parentKey);
+
         $this->directJoinWhere->{$whereIn}(
             $this->getQualifiedForeignPivotKeyName(),
-            $keys = $this->getKeys($models, $this->parentKey)
+            $keys
         );
         $this->inverseJoinWhere->{$whereIn}(
             $this->getQualifiedRelatedPivotKeyName(),
             $keys
         );
+
+        $this->addBinding($keys);
+        $this->addBinding($keys);
     }
 
     /**
