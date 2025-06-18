@@ -163,8 +163,8 @@ class BelongsToManySelf extends BelongsToMany
         );
 
         if ($whereIn === 'whereIn') {
-            $this->addBinding($keys);
-            $this->addBinding($keys);
+            $this->addBinding($keys, 'join');
+            $this->addBinding($keys, 'join');
         }
     }
 
