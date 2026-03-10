@@ -18,7 +18,7 @@ trait ManyToManySelfTestCase
     /**
      * @var int|string
      */
-    protected $user1_id, $user2_id, $user3_id, $user4_id;
+    protected $user1_id, $user2_id, $user3_id, $user4_id, $user5_id;
 
     /**
      * @var class-string<Model> The model class to use for testing
@@ -60,6 +60,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
         $this->assertNull($friends1->find($this->user1_id), "The Friends of User 1 has the User 1");
         $this->assertNull($friends1->find($this->user3_id), "The Friends of User 1 has the User 3");
+        $this->assertNull($friends1->find($this->user5_id), "The Friends of User 1 has the User 5");
 
         $user2 = $this->getModelClass()::find($this->user2_id);
         $friends2 = $user2->friends;
@@ -68,6 +69,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
         $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
         $this->assertNull($friends2->find($this->user2_id), "The Friends of User 2 has the User 2");
+        $this->assertNull($friends2->find($this->user5_id), "The Friends of User 2 has the User 5");
 
         $user3 = $this->getModelClass()::find($this->user3_id);
         $friends3 = $user3->friends;
@@ -76,6 +78,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends3->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
         $this->assertNull($friends3->find($this->user1_id), "The Friends of User 3 has the User 1");
         $this->assertNull($friends3->find($this->user3_id), "The Friends of User 3 has the User 3");
+        $this->assertNull($friends3->find($this->user5_id), "The Friends of User 3 has the User 5");
 
         $user4 = $this->getModelClass()::find($this->user4_id);
         $friends4 = $user4->friends;
@@ -84,6 +87,11 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
         $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
         $this->assertNull($friends4->find($this->user4_id), "The Friends of User 4 has the User 4");
+        $this->assertNull($friends4->find($this->user5_id), "The Friends of User 4 has the User 5");
+
+        $user5 = $this->getModelClass()::find($this->user5_id);
+        $friends5 = $user5->friends;
+        $this->assertCount(0, $friends5);
     }
 
     /** @test */
@@ -97,6 +105,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
         $this->assertNull($friends1->find($this->user1_id), "The Friends of User 1 has the User 1");
         $this->assertNull($friends1->find($this->user3_id), "The Friends of User 1 has the User 3");
+        $this->assertNull($friends1->find($this->user5_id), "The Friends of User 1 has the User 5");
 
         $user2 = $this->getModelClass()::find($this->user2_id);
         $friends2 = $user2->friends()->get();
@@ -105,6 +114,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
         $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
         $this->assertNull($friends2->find($this->user2_id), "The Friends of User 2 has the User 2");
+        $this->assertNull($friends2->find($this->user5_id), "The Friends of User 2 has the User 5");
 
         $user3 = $this->getModelClass()::find($this->user3_id);
         $friends3 = $user3->friends()->get();
@@ -113,6 +123,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends3->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
         $this->assertNull($friends3->find($this->user1_id), "The Friends of User 3 has the User 1");
         $this->assertNull($friends3->find($this->user3_id), "The Friends of User 3 has the User 3");
+        $this->assertNull($friends3->find($this->user5_id), "The Friends of User 3 has the User 5");
 
         $user4 = $this->getModelClass()::find($this->user4_id);
         $friends4 = $user4->friends()->get();
@@ -121,6 +132,78 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
         $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
         $this->assertNull($friends4->find($this->user4_id), "The Friends of User 4 has the User 4");
+        $this->assertNull($friends4->find($this->user5_id), "The Friends of User 4 has the User 5");
+
+        $user5 = $this->getModelClass()::find($this->user5_id);
+        $friends5 = $user5->friends()->get();
+        $this->assertCount(0, $friends5);
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_retrieve_relation_using_first()
+    {
+        $user1 = $this->getModelClass()::find($this->user1_id);
+        $firstFriend = $user1->friends()->first();
+        $this->assertNotNull($firstFriend);
+        $this->assertInstanceOf($this->getModelClass(), $firstFriend);
+        $this->assertTrue(
+            $firstFriend->id == $this->user2_id || $firstFriend->id == $this->user4_id,
+            "First friend of User 1 should be either User 2 or User 4"
+        );
+
+        $user5 = $this->getModelClass()::find($this->user5_id);
+        $this->assertNull($user5->friends()->first());
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_check_relation_existence()
+    {
+        $user1 = $this->getModelClass()::find($this->user1_id);
+        $this->assertTrue($user1->friends()->exists());
+        $this->assertFalse($user1->friends()->doesntExist());
+
+        $user5 = $this->getModelClass()::find($this->user5_id);
+        $this->assertFalse($user5->friends()->exists());
+        $this->assertTrue($user5->friends()->doesntExist());
+
+        // Filtered: User1 has a friend aged > 20 (User2, age=24) but none aged > 30
+        $user1 = $this->getModelClass()::find($this->user1_id);
+        $this->assertTrue($user1->friends()->where('age', '>', 20)->exists());
+        $this->assertFalse($user1->friends()->where('age', '>', 30)->exists());
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_count_relation_directly()
+    {
+        $this->assertEquals(2, $this->getModelClass()::find($this->user1_id)->friends()->count());
+        $this->assertEquals(3, $this->getModelClass()::find($this->user2_id)->friends()->count());
+        $this->assertEquals(2, $this->getModelClass()::find($this->user3_id)->friends()->count());
+        $this->assertEquals(3, $this->getModelClass()::find($this->user4_id)->friends()->count());
+        $this->assertEquals(0, $this->getModelClass()::find($this->user5_id)->friends()->count());
+
+        // Filtered: User2's friends (U1=18, U3=14, U4=8) with age > 15 → only U1
+        $user2 = $this->getModelClass()::find($this->user2_id);
+        $this->assertEquals(1, $user2->friends()->where('age', '>', 15)->count());
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_pluck_from_relation()
+    {
+        $user1 = $this->getModelClass()::find($this->user1_id);
+        $names = $user1->friends()->pluck('name');
+        $this->assertCount(2, $names);
+        $this->assertTrue($names->contains('User 2'));
+        $this->assertTrue($names->contains('User 4'));
+        $this->assertFalse($names->contains('User 1'));
+        $this->assertFalse($names->contains('User 3'));
+        $this->assertFalse($names->contains('User 5'));
+
+        $user5 = $this->getModelClass()::find($this->user5_id);
+        $this->assertCount(0, $user5->friends()->pluck('name'));
     }
 
     /** @test */
@@ -136,6 +219,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
         $this->assertNull($friends1->find($this->user1_id));
         $this->assertNull($friends1->find($this->user3_id));
+        $this->assertNull($friends1->find($this->user5_id));
 
         $user2 = $users->find($this->user2_id);
         $friends2 = $user2->friends;
@@ -144,6 +228,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
         $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
         $this->assertNull($friends2->find($this->user2_id));
+        $this->assertNull($friends2->find($this->user5_id));
 
         $user3 = $users->find($this->user3_id);
         $friends3 = $user3->friends;
@@ -152,6 +237,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends3->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
         $this->assertNull($friends3->find($this->user1_id));
         $this->assertNull($friends3->find($this->user3_id));
+        $this->assertNull($friends3->find($this->user5_id));
 
         $user4 = $users->find($this->user4_id);
         $friends4 = $user4->friends;
@@ -160,6 +246,51 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
         $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
         $this->assertNull($friends4->find($this->user4_id));
+        $this->assertNull($friends4->find($this->user5_id));
+
+        $user5 = $users->find($this->user5_id);
+        $friends5 = $user5->friends;
+        $this->assertCount(0, $friends5);
+    }
+
+    /** @test */
+    #[Test]
+    public function relation_can_be_eager_loaded_with_callback_constraint()
+    {
+        $users = $this->getModelClass()::with(['friends' => function ($query) {
+            $query->where('age', '>', 15);
+        }])->get();
+
+        // User1's friends: U2(24), U4(8) → age>15: only U2
+        $friends1 = $users->find($this->user1_id)->friends;
+        $this->assertCount(1, $friends1);
+        $this->assertNotNull($friends1->find($this->user2_id));
+        $this->assertNull($friends1->find($this->user4_id));
+        $this->assertNull($friends1->find($this->user5_id));
+
+        // User2's friends: U1(18), U3(14), U4(8) → age>15: only U1
+        $friends2 = $users->find($this->user2_id)->friends;
+        $this->assertCount(1, $friends2);
+        $this->assertNotNull($friends2->find($this->user1_id));
+        $this->assertNull($friends2->find($this->user3_id));
+        $this->assertNull($friends2->find($this->user4_id));
+
+        // User3's friends: U2(24), U4(8) → age>15: only U2
+        $friends3 = $users->find($this->user3_id)->friends;
+        $this->assertCount(1, $friends3);
+        $this->assertNotNull($friends3->find($this->user2_id));
+        $this->assertNull($friends3->find($this->user4_id));
+
+        // User4's friends: U1(18), U2(24), U3(14) → age>15: U1, U2
+        $friends4 = $users->find($this->user4_id)->friends;
+        $this->assertCount(2, $friends4);
+        $this->assertNotNull($friends4->find($this->user1_id));
+        $this->assertNotNull($friends4->find($this->user2_id));
+        $this->assertNull($friends4->find($this->user3_id));
+
+        // User5: no friends
+        $friends5 = $users->find($this->user5_id)->friends;
+        $this->assertCount(0, $friends5);
     }
 
     /** @test */
@@ -174,6 +305,7 @@ trait ManyToManySelfTestCase
         $this->assertCount(2, $friends1);
         $this->assertNull($friends1->find($this->user3_id), "The Friends of User 1 has the User 3");
         $this->assertNull($friends1->find($this->user1_id), "The Friends of User 1 has the User 1");
+        $this->assertNull($friends1->find($this->user5_id), "The Friends of User 1 has the User 5");
 
 
         $friends1_user2 = $friends1->find($this->user2_id);
@@ -197,6 +329,7 @@ trait ManyToManySelfTestCase
         $friends2 = $user2->friends;
         $this->assertCount(3, $friends2);
         $this->assertNull($friends2->find($this->user2_id), "The Friends of User 2 has the User 2");
+        $this->assertNull($friends2->find($this->user5_id), "The Friends of User 2 has the User 5");
 
         $friends2_user1 = $friends2->find($this->user1_id);
         $this->assertNotNull($friends2_user1, "The Friends of User 2 doesn't has the User 1");
@@ -228,6 +361,7 @@ trait ManyToManySelfTestCase
         $this->assertCount(2, $friends3);
         $this->assertNull($friends3->find($this->user1_id), "The Friends of User 3 has the User 1");
         $this->assertNull($friends3->find($this->user3_id), "The Friends of User 3 has the User 3");
+        $this->assertNull($friends3->find($this->user5_id), "The Friends of User 3 has the User 5");
 
         $friends3_user2 = $friends3->find($this->user2_id);
         $this->assertNotNull($friends3_user2, "The Friends of User 3 doesn't has the User 2");
@@ -250,6 +384,7 @@ trait ManyToManySelfTestCase
         $friends4 = $user4->friends;
         $this->assertCount(3, $friends4);
         $this->assertNull($friends4->find($this->user4_id), "The Friends of User 4 has the User 4");
+        $this->assertNull($friends4->find($this->user5_id), "The Friends of User 4 has the User 5");
 
         $friends4_user1 = $friends4->find($this->user1_id);
         $this->assertNotNull($friends4_user1, "The Friends of User 4 doesn't has the User 1");
@@ -274,6 +409,10 @@ trait ManyToManySelfTestCase
         $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends4_user3->birth_at);
         $this->assertNull($friends4_user3->age);
         $this->assertNull($friends4_user3->email);
+
+        $user5 = $users->find($this->user5_id);
+        $friends5 = $user5->friends;
+        $this->assertCount(0, $friends5);
     }
 
     /** @test */
@@ -300,6 +439,7 @@ trait ManyToManySelfTestCase
         $this->assertNull($friends2->find($this->user4_id)->birth_at);
         $this->assertNull($friends2->find($this->user4_id)->age);
         $this->assertNull($friends2->find($this->user4_id)->email);
+        $this->assertNull($friends2->find($this->user5_id));
 
         $user4 = $user->friends->find($this->user4_id);
         $friends4 = $user4->friends;
@@ -319,6 +459,7 @@ trait ManyToManySelfTestCase
         $this->assertEquals(Carbon::create(1998,2,13, 9, 2), $friends4->find($this->user3_id)->birth_at);
         $this->assertNull($friends4->find($this->user3_id)->age);
         $this->assertNull($friends4->find($this->user3_id)->email);
+        $this->assertNull($friends4->find($this->user5_id));
     }
 
     /** @test */
@@ -685,6 +826,186 @@ trait ManyToManySelfTestCase
 
     /** @test */
     #[Test]
+    public function it_can_attach_multiple_models_at_once()
+    {
+        $this->initiateFurtherTestUsers();
+
+        $this->testUser1->friends()->attach([$this->testUser2->id, $this->testUser3->id]);
+
+        $friends = $this->testUser1->friends()->get();
+        $this->assertCount(2, $friends);
+        $this->assertTrue($friends->contains($this->testUser2));
+        $this->assertTrue($friends->contains($this->testUser3));
+        $this->assertFalse($friends->contains($this->testUser1));
+
+        // Bidirectionality: both testUser2 and testUser3 should also see testUser1
+        $this->assertTrue($this->testUser2->friends()->get()->contains($this->testUser1));
+        $this->assertTrue($this->testUser3->friends()->get()->contains($this->testUser1));
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_detach_multiple_models_at_once()
+    {
+        // Direct attachment, multi-detach
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach([$this->testUser2->id, $this->testUser3->id]);
+        $this->assertCount(2, $this->testUser1->friends()->get());
+
+        $detached = $this->testUser1->friends()->detach([$this->testUser2->id, $this->testUser3->id]);
+        $this->assertEquals(2, $detached);
+        $this->assertCount(0, $this->testUser1->friends()->get());
+        $this->assertFalse($this->testUser2->friends()->get()->contains($this->testUser1));
+        $this->assertFalse($this->testUser3->friends()->get()->contains($this->testUser1));
+
+        // Mixed direction (one pivot stored as inverse), multi-detach
+        $this->initiateFurtherTestUsers();
+        $this->testUser2->friends()->attach($this->testUser1); // Stored as (testUser2, testUser1)
+        $this->testUser1->friends()->attach($this->testUser3); // Stored as (testUser1, testUser3)
+        $this->assertCount(2, $this->testUser1->friends()->get());
+
+        $detached = $this->testUser1->friends()->detach([$this->testUser2->id, $this->testUser3->id]);
+        $this->assertEquals(2, $detached);
+        $this->assertCount(0, $this->testUser1->friends()->get());
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_detach_all_relationships()
+    {
+        // All direct attachments
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2);
+        $this->testUser1->friends()->attach($this->testUser3);
+        $this->assertCount(2, $this->testUser1->friends()->get());
+
+        $detached = $this->testUser1->friends()->detach();
+        $this->assertEquals(2, $detached);
+        $this->assertCount(0, $this->testUser1->friends()->get());
+        $this->assertFalse($this->testUser2->friends()->get()->contains($this->testUser1));
+        $this->assertFalse($this->testUser3->friends()->get()->contains($this->testUser1));
+
+        // Mixed direction (inverse pivot stored as testUser2→testUser1)
+        $this->initiateFurtherTestUsers();
+        $this->testUser2->friends()->attach($this->testUser1); // Stored as (testUser2, testUser1)
+        $this->testUser1->friends()->attach($this->testUser3); // Stored as (testUser1, testUser3)
+        $this->assertCount(2, $this->testUser1->friends()->get());
+
+        $detached = $this->testUser1->friends()->detach();
+        $this->assertEquals(2, $detached);
+        $this->assertCount(0, $this->testUser1->friends()->get());
+        $this->assertFalse($this->testUser2->friends()->get()->contains($this->testUser1));
+        $this->assertFalse($this->testUser3->friends()->get()->contains($this->testUser1));
+    }
+
+    /** @test */
+    #[Test]
+    public function it_is_bidirectional_regardless_of_insertion_order()
+    {
+        // The initial dataset has pivots stored in mixed directions:
+        // (user1=U1, user2=U4), (user1=U2, user2=U1) ← U2→U1 is inverse for U1
+        // (user1=U2, user2=U3), (user1=U3, user2=U4), (user1=U4, user2=U2)
+
+        // U1's friends: U2 is stored as (U2,U1), U4 as (U1,U4) — both directions
+        $user1 = $this->getModelClass()::find($this->user1_id);
+        $friends1 = $user1->friends;
+        $this->assertNotNull($friends1->find($this->user2_id), "U2 (pivot stored as U2→U1) should appear in U1's friends");
+        $this->assertNotNull($friends1->find($this->user4_id), "U4 (pivot stored as U1→U4) should appear in U1's friends");
+
+        // U4's friends: U1 is stored as (U1,U4), U2 as (U4,U2) — both directions
+        $user4 = $this->getModelClass()::find($this->user4_id);
+        $friends4 = $user4->friends;
+        $this->assertNotNull($friends4->find($this->user1_id), "U1 (pivot stored as U1→U4 inverse) should appear in U4's friends");
+        $this->assertNotNull($friends4->find($this->user2_id), "U2 (pivot stored as U4→U2) should appear in U4's friends");
+
+        // Explicit test with fresh users
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2); // Stored as (testUser1, testUser2)
+
+        // testUser2 should see testUser1 even though the pivot is stored in the other direction
+        $this->assertTrue($this->testUser2->friends()->get()->contains($this->testUser1));
+        $this->assertTrue($this->testUser1->friends()->get()->contains($this->testUser2));
+
+        // Inverse: testUser3 attaches testUser1 (stored as testUser3→testUser1)
+        $this->testUser3->friends()->attach($this->testUser1);
+
+        // testUser1 should see testUser3 via the inverse direction
+        $friends = $this->testUser1->friends()->get();
+        $this->assertCount(2, $friends);
+        $this->assertTrue($friends->contains($this->testUser2));
+        $this->assertTrue($friends->contains($this->testUser3));
+        $this->assertTrue($this->testUser3->friends()->get()->contains($this->testUser1));
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_retrieve_pivot_data_bidirectionally()
+    {
+        $this->initiateFurtherTestUsers();
+
+        // Direct attachment: testUser1 → testUser2 with percentage=75
+        $this->testUser1->friends()->attach($this->testUser2, ['percentage' => 75]);
+        // Inverse attachment: testUser3 → testUser1 with percentage=50
+        $this->testUser3->friends()->attach($this->testUser1, ['percentage' => 50]);
+
+        // From testUser1's perspective: both friends visible with correct pivot values
+        $friends = $this->testUser1->friends()->get();
+        $this->assertCount(2, $friends);
+
+        $user2Record = $friends->find($this->testUser2->id);
+        $this->assertNotNull($user2Record);
+        $this->assertEquals(75, $user2Record->pivot->percentage);
+
+        $user3Record = $friends->find($this->testUser3->id);
+        $this->assertNotNull($user3Record);
+        $this->assertEquals(50, $user3Record->pivot->percentage);
+
+        // From testUser2's perspective: sees testUser1 with the same percentage=75
+        $friends2 = $this->testUser2->friends()->get();
+        $this->assertCount(1, $friends2);
+        $this->assertEquals(75, $friends2->find($this->testUser1->id)->pivot->percentage);
+
+        // From testUser3's perspective: sees testUser1 with the same percentage=50
+        $friends3 = $this->testUser3->friends()->get();
+        $this->assertCount(1, $friends3);
+        $this->assertEquals(50, $friends3->find($this->testUser1->id)->pivot->percentage);
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_filter_by_pivot_column()
+    {
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2, ['percentage' => 50]);
+        $this->testUser1->friends()->attach($this->testUser3, ['percentage' => 80]);
+
+        // Exact pivot value
+        $friends = $this->testUser1->friends()->wherePivot('percentage', 50)->get();
+        $this->assertCount(1, $friends);
+        $this->assertTrue($friends->first()->is($this->testUser2));
+
+        // Pivot whereIn
+        $friends = $this->testUser1->friends()->wherePivotIn('percentage', [50, 80])->get();
+        $this->assertCount(2, $friends);
+        $this->assertTrue($friends->contains($this->testUser2));
+        $this->assertTrue($friends->contains($this->testUser3));
+
+        // Null / not-null pivot values
+        $this->initiateFurtherTestUsers();
+        $this->testUser1->friends()->attach($this->testUser2, ['percentage' => 60]);
+        $this->testUser1->friends()->attach($this->testUser3); // percentage defaults to null
+
+        $friendsWithNull = $this->testUser1->friends()->wherePivotNull('percentage')->get();
+        $this->assertCount(1, $friendsWithNull);
+        $this->assertTrue($friendsWithNull->first()->is($this->testUser3));
+
+        $friendsNotNull = $this->testUser1->friends()->wherePivotNotNull('percentage')->get();
+        $this->assertCount(1, $friendsNotNull);
+        $this->assertTrue($friendsNotNull->first()->is($this->testUser2));
+    }
+
+    /** @test */
+    #[Test]
     public function nested_relations_can_be_eager_loaded()
     {
         $users = $this->getModelClass()::with('friends', 'friends.friends')->get();
@@ -695,18 +1016,21 @@ trait ManyToManySelfTestCase
         $this->assertCount(2, $friends1);
         $this->assertNotNull($friends1->find($this->user2_id), "The Friends of User 1 doesn't has the User 2");
         $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
+        $this->assertNull($friends1->find($this->user5_id));
         // User 2 / Friend of User 1
         $friends2_of_user1 = $friends1->find($this->user2_id)->friends;
         $this->assertCount(3, $friends2_of_user1);
         $this->assertNotNull($friends2_of_user1->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
         $this->assertNotNull($friends2_of_user1->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
         $this->assertNotNull($friends2_of_user1->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
+        $this->assertNull($friends2_of_user1->find($this->user5_id));
         // User 4 / Friend of User 1
         $friends4_of_user1 = $friends1->find($this->user4_id)->friends;
         $this->assertCount(3, $friends4_of_user1);
         $this->assertNotNull($friends4_of_user1->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
         $this->assertNotNull($friends4_of_user1->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
         $this->assertNotNull($friends4_of_user1->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
+        $this->assertNull($friends4_of_user1->find($this->user5_id));
 
         // User 2
         $user2 = $users->find($this->user2_id);
@@ -715,6 +1039,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends2->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
         $this->assertNotNull($friends2->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
         $this->assertNotNull($friends2->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
+        $this->assertNull($friends2->find($this->user5_id));
         // User 1 / Friend of User 2
         $friends1_of_user2 = $friends2->find($this->user1_id)->friends;
         $this->assertCount(2, $friends1_of_user2);
@@ -731,6 +1056,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends4_of_user2->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
         $this->assertNotNull($friends4_of_user2->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
         $this->assertNotNull($friends4_of_user2->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
+        $this->assertNull($friends4_of_user2->find($this->user5_id));
 
         // User 3
         $user3 = $users->find($this->user3_id);
@@ -738,18 +1064,21 @@ trait ManyToManySelfTestCase
         $this->assertCount(2, $friends3);
         $this->assertNotNull($friends3->find($this->user2_id), "The Friends of User 3 doesn't has the User 2");
         $this->assertNotNull($friends3->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
+        $this->assertNull($friends3->find($this->user5_id));
         // User 2 / Friend of User 3
         $friends2_of_user3 = $friends3->find($this->user2_id)->friends;
         $this->assertCount(3, $friends2_of_user3);
         $this->assertNotNull($friends2_of_user3->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
         $this->assertNotNull($friends2_of_user3->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
         $this->assertNotNull($friends2_of_user3->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
+        $this->assertNull($friends2_of_user3->find($this->user5_id));
         // User 4 / Friend of User 3
         $friends4_of_user3 = $friends3->find($this->user4_id)->friends;
         $this->assertCount(3, $friends4_of_user3);
         $this->assertNotNull($friends4_of_user3->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
         $this->assertNotNull($friends4_of_user3->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
         $this->assertNotNull($friends4_of_user3->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
+        $this->assertNull($friends4_of_user3->find($this->user5_id));
 
         // User 4
         $user4 = $users->find($this->user4_id);
@@ -758,6 +1087,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends4->find($this->user1_id), "The Friends of User 4 doesn't has the User 1");
         $this->assertNotNull($friends4->find($this->user2_id), "The Friends of User 4 doesn't has the User 2");
         $this->assertNotNull($friends4->find($this->user3_id), "The Friends of User 4 doesn't has the User 3");
+        $this->assertNull($friends4->find($this->user5_id));
         // User 1 / Friend of User 4
         $friends1_of_user4 = $friends4->find($this->user1_id)->friends;
         $this->assertCount(2, $friends1_of_user4);
@@ -769,11 +1099,17 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($friends2_of_user4->find($this->user1_id), "The Friends of User 2 doesn't has the User 1");
         $this->assertNotNull($friends2_of_user4->find($this->user3_id), "The Friends of User 2 doesn't has the User 3");
         $this->assertNotNull($friends2_of_user4->find($this->user4_id), "The Friends of User 2 doesn't has the User 4");
+        $this->assertNull($friends2_of_user4->find($this->user5_id));
         // User 3 / Friend of User 4
         $friends3_of_user4 = $friends4->find($this->user3_id)->friends;
         $this->assertCount(2, $friends3_of_user4);
         $this->assertNotNull($friends3_of_user4->find($this->user2_id), "The Friends of User 3 doesn't has the User 2");
         $this->assertNotNull($friends3_of_user4->find($this->user4_id), "The Friends of User 3 doesn't has the User 4");
+
+        // User 5
+        $user5 = $users->find($this->user5_id);
+        $friends5 = $user5->friends;
+        $this->assertCount(0, $friends5);
     }
 
     /** @test */
@@ -816,6 +1152,11 @@ trait ManyToManySelfTestCase
             $this->assertEquals(18, $users->find($this->user4_id)->friends_avg_age, 3);
         else
             $this->assertEquals(18.667, round($users->find($this->user4_id)->friends_avg_age, 3));
+
+        $this->assertNull($users->find($this->user5_id)->friends_min_age);
+        $this->assertNull($users->find($this->user5_id)->friends_max_age);
+        $this->assertNull($users->find($this->user5_id)->friends_sum_age);
+        $this->assertNull($users->find($this->user5_id)->friends_avg_age);
     }
 
     /** @test */
@@ -828,6 +1169,7 @@ trait ManyToManySelfTestCase
         $this->assertEquals(3, $users->find($this->user2_id)->friends_count);
         $this->assertEquals(2, $users->find($this->user3_id)->friends_count);
         $this->assertEquals(3, $users->find($this->user4_id)->friends_count);
+        $this->assertEquals(0, $users->find($this->user5_id)->friends_count);
     }
 
     /** @test */
@@ -839,6 +1181,8 @@ trait ManyToManySelfTestCase
 
         $this->assertCount(1, $friends1);
         $this->assertNotNull($friends1->find($this->user2_id));
+        $this->assertNull($friends1->find($this->user4_id));
+        $this->assertNull($friends1->find($this->user5_id));
 
         $user2 = $this->getModelClass()::find($this->user2_id);
         $friends2 = $user2->friends()
@@ -850,6 +1194,8 @@ trait ManyToManySelfTestCase
         $this->assertCount(2, $friends2);
         $this->assertNotNull($friends2->find($this->user1_id));
         $this->assertNotNull($friends2->find($this->user4_id));
+        $this->assertNull($friends2->find($this->user3_id));
+        $this->assertNull($friends2->find($this->user5_id));
     }
 
     /** @test */
@@ -887,6 +1233,9 @@ trait ManyToManySelfTestCase
         $this->assertCount(2, $users_friend_with_user3);
         $this->assertNotNull($users_friend_with_user3->find($this->user2_id));
         $this->assertNotNull($users_friend_with_user3->find($this->user4_id));
+        $this->assertNull($users_friend_with_user3->find($this->user1_id));
+        $this->assertNull($users_friend_with_user3->find($this->user3_id));
+        $this->assertNull($users_friend_with_user3->find($this->user5_id));
 
         $users_friend_with_user1_and_user4 = $this->getModelClass()::whereHas('friends', function (Builder $friendQuery) {
             return $friendQuery->where('age', '>', 15)
@@ -899,6 +1248,7 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($users_friend_with_user1_and_user4->find($this->user2_id));
         $this->assertNotNull($users_friend_with_user1_and_user4->find($this->user3_id));
         $this->assertNotNull($users_friend_with_user1_and_user4->find($this->user4_id));
+        $this->assertNull($users_friend_with_user1_and_user4->find($this->user5_id));
     }
 
     /** @test */
@@ -911,6 +1261,9 @@ trait ManyToManySelfTestCase
         $this->assertCount(2, $user_with_more_than_2friends);
         $this->assertNotNull($user_with_more_than_2friends->find($this->user2_id));
         $this->assertNotNull($user_with_more_than_2friends->find($this->user4_id));
+        $this->assertNull($user_with_more_than_2friends->find($this->user1_id));
+        $this->assertNull($user_with_more_than_2friends->find($this->user3_id));
+        $this->assertNull($user_with_more_than_2friends->find($this->user5_id));
 
         $callback = function ($query) {
             /** @var \Illuminate\Database\Eloquent\Builder $query */
@@ -923,10 +1276,15 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($user_with_sophisticated_friend->find($this->user2_id));
         $this->assertNotNull($user_with_sophisticated_friend->find($this->user3_id));
         $this->assertNotNull($user_with_sophisticated_friend->find($this->user4_id));
+        $this->assertNull($user_with_sophisticated_friend->find($this->user5_id));
 
         $user_with_more_sophisticated_friend = $this->getModelClass()::has('friends', '>', 1, 'and', $callback)->get();
         $this->assertCount(1, $user_with_more_sophisticated_friend);
         $this->assertNotNull($user_with_more_sophisticated_friend->find($this->user4_id));
+        $this->assertNull($user_with_more_sophisticated_friend->find($this->user1_id));
+        $this->assertNull($user_with_more_sophisticated_friend->find($this->user2_id));
+        $this->assertNull($user_with_more_sophisticated_friend->find($this->user3_id));
+        $this->assertNull($user_with_more_sophisticated_friend->find($this->user5_id));
     }
 
     /** @test */
@@ -951,6 +1309,57 @@ trait ManyToManySelfTestCase
         $this->assertNotNull($users->find($this->user4_id));
         $this->assertNull($users->find($this->user1_id));
         $this->assertNull($users->find($this->user3_id));
+        $this->assertNull($users->find($this->user5_id));
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_be_used_in_doesnt_have_relationship_eloquent_query()
+    {
+        // Users with no friends at all → only User5
+        $usersWithNoFriends = $this->getModelClass()::doesntHave('friends')->get();
+        $this->assertCount(1, $usersWithNoFriends);
+        $this->assertNotNull($usersWithNoFriends->find($this->user5_id));
+        $this->assertNull($usersWithNoFriends->find($this->user1_id));
+        $this->assertNull($usersWithNoFriends->find($this->user2_id));
+        $this->assertNull($usersWithNoFriends->find($this->user3_id));
+        $this->assertNull($usersWithNoFriends->find($this->user4_id));
+
+        // Users without a friend aged 14 (User3, age=14 is friends with U2 and U4)
+        // → U2 and U4 have User3 as friend, so they are excluded
+        // → U1, U3, U5 are included
+        $usersWithoutAgedFriend = $this->getModelClass()::whereDoesntHave('friends', function (Builder $friendQuery) {
+            return $friendQuery->where('age', 14);
+        })->get();
+
+        $this->assertCount(3, $usersWithoutAgedFriend);
+        $this->assertNotNull($usersWithoutAgedFriend->find($this->user1_id));
+        $this->assertNotNull($usersWithoutAgedFriend->find($this->user3_id));
+        $this->assertNotNull($usersWithoutAgedFriend->find($this->user5_id));
+        $this->assertNull($usersWithoutAgedFriend->find($this->user2_id));
+        $this->assertNull($usersWithoutAgedFriend->find($this->user4_id));
+    }
+
+    /** @test */
+    #[Test]
+    public function it_can_be_used_in_or_where_has_relationship_eloquent_query()
+    {
+        // Users who have a friend aged 8 (User4) OR a friend aged 14 (User3)
+        // Has friend aged 8 (User4): U1, U2, U3
+        // Has friend aged 14 (User3): U2, U4
+        // Union: U1, U2, U3, U4
+        $users = $this->getModelClass()::whereHas('friends', function (Builder $query) {
+            return $query->where('age', 8);
+        })->orWhereHas('friends', function (Builder $query) {
+            return $query->where('age', 14);
+        })->get();
+
+        $this->assertCount(4, $users);
+        $this->assertNotNull($users->find($this->user1_id));
+        $this->assertNotNull($users->find($this->user2_id));
+        $this->assertNotNull($users->find($this->user3_id));
+        $this->assertNotNull($users->find($this->user4_id));
+        $this->assertNull($users->find($this->user5_id));
     }
 
 
@@ -997,6 +1406,12 @@ trait ManyToManySelfTestCase
         $this->user4_id = $this->getModelClass()::create([
             'name' => 'User 4',
             'age' => 8
+        ])->fresh()->id;
+        $this->user5_id = $this->getModelClass()::create([
+            'name' => 'User 5',
+            'age' => 35,
+            'birth_at' => Carbon::create(1983, 5, 10, 12, 0),
+            'email' => 'user5@example.com'
         ])->fresh()->id;
 
         DB::table('friends')->insert([
