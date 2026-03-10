@@ -59,6 +59,8 @@ jobs:
             laravel-versions: '11.*'
           - php-versions: '8.1'
             laravel-versions: '12.*'
+          - php-versions: '8.0'
+            laravel-versions: '9.*'
           - php-versions: '8.5'
             laravel-versions: '8.*'
 
