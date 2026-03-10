@@ -23,7 +23,7 @@ jobs:
     services:
       # MySQL service
       mysql:
-        image: mysql:8.0
+        image: mysql:8.4
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: test_db
@@ -33,7 +33,7 @@ jobs:
 
       # PostgreSQL service
       postgres:
-        image: postgres:15
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['8.0', '8.1', '8.2', '8.3', '8.4']
+        php-versions: ['8.0', '8.1', '8.2', '8.3', '8.4', '8.5']
         laravel-versions: ['8.*', '9.*', '10.*', '11.*', '12.*']
         exclude:
           # Exclude incompatible PHP and Laravel combinations
@@ -59,9 +59,11 @@ jobs:
             laravel-versions: '11.*'
           - php-versions: '8.1'
             laravel-versions: '12.*'
+          - php-versions: '8.5'
+            laravel-versions: '8.*'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -76,7 +78,7 @@ jobs:
         with:
           install: sqlengine, sqlclient, sqlpackage, fulltext
           sa-password: YourStrong!Passw0rd
-          version: 2019
+          version: 2022
 
       - name: Install SQL Server drivers and tools
         run: |
@@ -86,9 +88,9 @@ jobs:
           sudo dpkg -i packages-microsoft-prod.deb
           rm packages-microsoft-prod.deb
           sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
-          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools
-          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18
+          echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
           source ~/.bashrc
 
       - name: Install dependencies
@@ -101,7 +103,7 @@ jobs:
           # Wait a moment to ensure SQL Server is fully initialized
           sleep 10
           # Display SQL Server version to confirm connectivity
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -Q "SELECT @@VERSION"
+          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -No -Q "SELECT @@VERSION"
 
       - name: Wait for databases to be ready
         run: |
