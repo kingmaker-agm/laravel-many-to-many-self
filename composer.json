@@ -32,5 +32,21 @@
     "license": "MIT",
     "require-dev": {
         "orchestra/testbench": "^6.0|^7.0|^8.0|^9.0|^10.0"
+    },
+    "config": {
+        "audit": {
+            "ignore": {
+                "PKSA-8qx3-n5y5-vvnd": "Intentionally testing against EOL Laravel 8/9 for backward compatibility",
+                "PKSA-w7xr-vk7n-rstm": "Intentionally testing against EOL Laravel 8/9 for backward compatibility",
+                "PKSA-p3rx-dfwp-73ny": "Intentionally testing against EOL Laravel 8 for backward compatibility",
+                "PKSA-ckwp-rt7t-c46m": "Intentionally testing against EOL Laravel 8 for backward compatibility",
+                "PKSA-4npr-btr6-zhny": "Intentionally testing against EOL Laravel 8 for backward compatibility",
+                "PKSA-njrm-6dtg-m2pc": "Intentionally testing against EOL Laravel 8/9 for backward compatibility",
+                "PKSA-985r-hryy-555b": "Intentionally testing against EOL Laravel 8 for backward compatibility",
+                "PKSA-2cx9-ynrq-qdk3": "Intentionally testing against EOL Laravel 8 for backward compatibility",
+                "PKSA-rqc2-tcc6-nc79": "Intentionally testing against EOL Laravel 8 for backward compatibility",
+                "PKSA-fndg-qryc-dyc9": "Intentionally testing against EOL Laravel 8 for backward compatibility"
+            }
+        }
     }
 }
