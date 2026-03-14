@@ -21,7 +21,7 @@ abstract class MysqlTestCase extends TestCase
             'database' => env('MYSQL_DATABASE'),
             'username' => env('MYSQL_USERNAME'),
             'password' => env('MYSQL_PASSWORD'),
-            'prefix' => env('MYSQL_TABLE_PREFIX', '')
+            'prefix' => env('MYSQL_TABLE_PREFIX', ''),
         ]);
     }
 
