@@ -19,7 +19,6 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/2.1+' }}
 
 jobs:
   test:
