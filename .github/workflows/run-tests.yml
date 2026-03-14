@@ -1,4 +1,4 @@
-name: Run PHPUnit Tests
+name: PHPUnit Tests
 
 on:
   push:
@@ -16,9 +16,6 @@ on:
       - develop
       - '2.1+'
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   test:
