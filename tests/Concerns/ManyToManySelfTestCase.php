@@ -55,7 +55,7 @@ trait ManyToManySelfTestCase
     {
         $user1 = $this->getModelClass()::find($this->user1_id);
         $friends1 = $user1->friends;
-        $this->assertCount(99, $friends1); // DELIBERATE FAILURE — remove this line
+        $this->assertCount(2, $friends1);
         $this->assertNotNull($friends1->find($this->user2_id), "The Friends of User 1 doesn't has the User 2");
         $this->assertNotNull($friends1->find($this->user4_id), "The Friends of User 1 doesn't has the User 4");
         $this->assertNull($friends1->find($this->user1_id), "The Friends of User 1 has the User 1");
