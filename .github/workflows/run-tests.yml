@@ -6,7 +6,7 @@ on:
       - main
       - master
       - develop
-      - '2.1\+'
+      - '2.1+'
       - '2.0'
       - '1.x'
   pull_request:
@@ -14,7 +14,7 @@ on:
       - main
       - master
       - develop
-      - '2.1\+'
+      - '2.1+'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
