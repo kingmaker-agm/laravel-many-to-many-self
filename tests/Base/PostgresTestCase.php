@@ -26,7 +26,7 @@ abstract class PostgresTestCase extends TestCase
             'database' => env('POSTGRES_DATABASE'),
             'username' => env('POSTGRES_USERNAME'),
             'password' => env('POSTGRES_PASSWORD'),
-            'prefix' => env('POSTGRES_TABLE_PREFIX', '')
+            'prefix' => env('POSTGRES_TABLE_PREFIX', ''),
         ]);
     }
 }

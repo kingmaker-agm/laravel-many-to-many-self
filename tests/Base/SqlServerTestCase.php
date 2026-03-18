@@ -26,7 +26,7 @@ class SqlServerTestCase extends TestCase
             'database' => env('SQL_SERVER_DATABASE'),
             'username' => env('SQL_SERVER_USERNAME'),
             'password' => env('SQL_SERVER_PASSWORD'),
-            'prefix' => env('SQL_SERVER_TABLE_PREFIX', '')
+            'prefix' => env('SQL_SERVER_TABLE_PREFIX', ''),
         ]);
     }
 }
