@@ -94,6 +94,8 @@ jobs:
             laravel-versions: '13.*'
           - php-versions: '8.1'
             laravel-versions: '13.*'
+          - php-versions: '8.2'
+            laravel-versions: '13.*'
 
     steps:
       - uses: actions/checkout@v4
