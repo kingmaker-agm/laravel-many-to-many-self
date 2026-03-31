@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Str;
 
@@ -416,7 +417,48 @@ class BelongsToManySelf extends BelongsToMany
     }
 
     /**
-     * Get all of the IDs for the related models.
+     * Update an existing pivot record on the table via a custom class.
+     *
+     * Overridden to account for self-referencing relationships where the related ID
+     * may appear in either the foreign or related pivot key column.
+     *
+     * @param  mixed  $id
+     * @param  array  $attributes
+     * @param  bool  $touch
+     * @return int
+     */
+    protected function updateExistingPivotUsingCustomClass($id, array $attributes, $touch)
+    {
+        $pivot = $this->newPivotQuery()
+            ->where(function ($query) use ($id) {
+                $query->whereIn($this->getQualifiedRelatedPivotKeyName(), $this->parseIds($id))
+                    ->orWhereIn($this->getQualifiedForeignPivotKeyName(), $this->parseIds($id));
+            })
+            ->get()
+            ->map(function ($record) {
+                $class = $this->using ?: Pivot::class;
+
+                $pivot = $class::fromRawAttributes($this->parent, (array) $record, $this->getTable(), true);
+
+                return $pivot->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey);
+            })
+            ->first();
+
+        $updated = $pivot ? $pivot->fill($attributes)->isDirty() : false;
+
+        if ($updated) {
+            $pivot->save();
+        }
+
+        if ($touch) {
+            $this->touchIfTouching();
+        }
+
+        return (int) $updated;
+    }
+
+    /**
+     * Get all the IDs for the related models.
      *
      * @return \Illuminate\Support\Collection
      */
