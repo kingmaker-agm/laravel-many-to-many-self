@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Str;
 
@@ -416,7 +417,37 @@ class BelongsToManySelf extends BelongsToMany
     }
 
     /**
-     * Get all of the IDs for the related models.
+     * Get the pivot models that are currently attached, filtered by related model keys.
+     *
+     * Overridden to account for self-referencing relationships where the related ID
+     * may appear in either the foreign or related pivot key column.
+     *
+     * @param  mixed  $ids
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getCurrentlyAttachedPivotsForIds($ids = null)
+    {
+        return $this->newPivotQuery()
+            ->when(! is_null($ids), function ($query) use ($ids) {
+                return $query->where(function ($query) use ($ids) {
+                    $query->whereIn($this->getQualifiedRelatedPivotKeyName(), $this->parseIds($ids))
+                        ->orWhereIn($this->getQualifiedForeignPivotKeyName(), $this->parseIds($ids));
+                });
+            })
+            ->get()
+            ->map(function ($record) {
+                $class = $this->using ?: Pivot::class;
+
+                $pivot = $class::fromRawAttributes($this->parent, (array) $record, $this->getTable(), true);
+
+                return $pivot
+                    ->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey)
+                    ->setRelatedModel($this->related);
+            });
+    }
+
+    /**
+     * Get all the IDs for the related models.
      *
      * @return \Illuminate\Support\Collection
      */

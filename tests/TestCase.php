@@ -19,6 +19,15 @@ abstract class TestCase extends PhpUnitTestCase
         $this->seedDataForManyToManySelf();
     }
 
+    protected function tearDown(): void
+    {
+        foreach ($this->app['db']->getConnections() as $connection) {
+            $connection->disconnect();
+        }
+
+        parent::tearDown();
+    }
+
     protected function defineEnvironment($app)
     {
         $app->useEnvironmentPath(__DIR__ . '/');
