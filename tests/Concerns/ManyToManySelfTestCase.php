@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Kingmaker\Illuminate\Eloquent\Relations\Tests\Contracts\DatabaseSchemaRefreshable;
 use Kingmaker\Illuminate\Eloquent\Relations\Tests\Models\ModelStub;
 use PHPUnit\Framework\Attributes\Test;
+use function laravel_version;
 
 trait ManyToManySelfTestCase
 {
