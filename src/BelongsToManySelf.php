@@ -417,22 +417,22 @@ class BelongsToManySelf extends BelongsToMany
     }
 
     /**
-     * Get the pivot models that are currently attached, filtered by related model keys.
+     * Update an existing pivot record on the table via a custom class.
      *
      * Overridden to account for self-referencing relationships where the related ID
      * may appear in either the foreign or related pivot key column.
      *
-     * @param  mixed  $ids
-     * @return \Illuminate\Support\Collection
+     * @param  mixed  $id
+     * @param  array  $attributes
+     * @param  bool  $touch
+     * @return int
      */
-    protected function getCurrentlyAttachedPivotsForIds($ids = null)
+    protected function updateExistingPivotUsingCustomClass($id, array $attributes, $touch)
     {
-        return $this->newPivotQuery()
-            ->when(! is_null($ids), function ($query) use ($ids) {
-                return $query->where(function ($query) use ($ids) {
-                    $query->whereIn($this->getQualifiedRelatedPivotKeyName(), $this->parseIds($ids))
-                        ->orWhereIn($this->getQualifiedForeignPivotKeyName(), $this->parseIds($ids));
-                });
+        $pivot = $this->newPivotQuery()
+            ->where(function ($query) use ($id) {
+                $query->whereIn($this->getQualifiedRelatedPivotKeyName(), $this->parseIds($id))
+                    ->orWhereIn($this->getQualifiedForeignPivotKeyName(), $this->parseIds($id));
             })
             ->get()
             ->map(function ($record) {
@@ -440,10 +440,21 @@ class BelongsToManySelf extends BelongsToMany
 
                 $pivot = $class::fromRawAttributes($this->parent, (array) $record, $this->getTable(), true);
 
-                return $pivot
-                    ->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey)
-                    ->setRelatedModel($this->related);
-            });
+                return $pivot->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey);
+            })
+            ->first();
+
+        $updated = $pivot ? $pivot->fill($attributes)->isDirty() : false;
+
+        if ($updated) {
+            $pivot->save();
+        }
+
+        if ($touch) {
+            $this->touchIfTouching();
+        }
+
+        return (int) $updated;
     }
 
     /**
