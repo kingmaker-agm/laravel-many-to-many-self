@@ -46,7 +46,10 @@
                 "PKSA-985r-hryy-555b": "Intentionally testing against EOL Laravel 8 for backward compatibility",
                 "PKSA-2cx9-ynrq-qdk3": "Intentionally testing against EOL Laravel 8 for backward compatibility",
                 "PKSA-rqc2-tcc6-nc79": "Intentionally testing against EOL Laravel 8 for backward compatibility",
-                "PKSA-fndg-qryc-dyc9": "Intentionally testing against EOL Laravel 8 for backward compatibility"
+                "PKSA-fndg-qryc-dyc9": "Intentionally testing against EOL Laravel 8 for backward compatibility",
+                "PKSA-hd7s-dt46-m6bk": "Intentionally testing against EOL Laravel 8 for backward compatibility",
+                "PKSA-f9c1-b1dw-jn5z": "Intentionally testing against EOL Laravel 8 for backward compatibility",
+                "PKSA-7pr6-8x55-t8hc": "Intentionally testing against EOL Laravel 8 for backward compatibility"
             }
         }
     }
