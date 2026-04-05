@@ -64,7 +64,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.2', '7.3', '7.4', '8.0']
+        php-versions: ['7.3', '7.4', '8.0']
         laravel-versions: ['8.17.*', '8.22.*', '8.28.*', '8.34.*', '8.*']
 
     steps:
@@ -128,10 +128,6 @@ jobs:
           timeout 15s bash -c "until mysql -h127.0.0.1 -uroot -ppassword -e 'SELECT 1'; do sleep 1; done"
           # Wait for PostgreSQL
           timeout 15s bash -c "until PGPASSWORD=password psql -h localhost -U postgres -d test_db -c 'SELECT 1'; do sleep 1; done"
-
-      - name: Configure MySQL native password for PHP 7.x compatibility
-        run: |
-          mysql -h 127.0.0.1 -u root -ppassword -e "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'password';"
 
       - name: Run tests
         run: vendor/bin/phpunit
