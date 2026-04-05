@@ -1,0 +1,151 @@
+name: PHPUnit Tests
+
+on:
+  push:
+    branches:
+      - '2.0'
+  pull_request:
+    branches:
+      - '2.0'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+
+    services:
+      # MySQL service
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
+          --health-start-period=30s
+
+      # PostgreSQL service
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=5
+          --health-start-period=10s
+
+      # SQL Server service
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: YourStrong!Passw0rd
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -No -Q 'SELECT 1' -b"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+          --health-start-period=30s
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: ['7.3', '7.4', '8.0', '8.1']
+        laravel-versions: ['8.17.*', '8.22.*', '8.28.*', '8.34.*']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache PHP extensions
+        uses: shivammathur/cache-extensions@v1
+        id: cache-ext
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, pdo, pdo_mysql, pdo_sqlite, pdo_sqlsrv, pdo_pgsql, sqlite3, sqlsrv
+          key: php-ext-${{ matrix.php-versions }}-v1
+
+      - name: Get composer cache directory
+        id: composer-cache-dir
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-composer-php${{ matrix.php-versions }}-laravel${{ matrix.laravel-versions }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-php${{ matrix.php-versions }}-laravel${{ matrix.laravel-versions }}-
+            ${{ runner.os }}-composer-php${{ matrix.php-versions }}-
+            ${{ runner.os }}-composer-
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, pdo, pdo_mysql, pdo_sqlite, pdo_sqlsrv, pdo_pgsql, sqlite3, sqlsrv
+          coverage: none
+          tools: composer:v2
+
+      - name: Install SQL Server drivers and tools
+        run: |
+          if ! dpkg -l msodbcsql18 2>/dev/null | grep -q '^ii'; then
+            sudo curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+              | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+            curl -sSL -O https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb
+            sudo dpkg -i packages-microsoft-prod.deb
+            rm packages-microsoft-prod.deb
+            sudo apt-get update -q
+            sudo ACCEPT_EULA=Y apt-get install -y -q msodbcsql18 unixodbc-dev mssql-tools18
+          fi
+          echo "/opt/mssql-tools18/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          composer require "illuminate/database:${{ matrix.laravel-versions }}" --no-interaction --no-update
+          composer update --prefer-dist --no-interaction --no-progress --no-scripts
+
+      - name: Verify SQL Server connection
+        run: |
+          /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -No -Q "SELECT @@VERSION"
+
+      - name: Wait for databases to be ready
+        run: |
+          # Wait for MySQL
+          timeout 15s bash -c "until mysql -h127.0.0.1 -uroot -ppassword -e 'SELECT 1'; do sleep 1; done"
+          # Wait for PostgreSQL
+          timeout 15s bash -c "until PGPASSWORD=password psql -h localhost -U postgres -d test_db -c 'SELECT 1'; do sleep 1; done"
+
+      - name: Run tests
+        run: vendor/bin/phpunit
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+          MYSQL_DATABASE: test_db
+          MYSQL_USERNAME: root
+          MYSQL_PASSWORD: password
+
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DATABASE: test_db
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
+
+          SQL_SERVER_HOST: localhost
+          SQL_SERVER_PORT: 1433
+          SQL_SERVER_DATABASE: master
+          SQL_SERVER_USERNAME: sa
+          SQL_SERVER_PASSWORD: YourStrong!Passw0rd
