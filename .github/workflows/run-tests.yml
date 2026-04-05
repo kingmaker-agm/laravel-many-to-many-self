@@ -64,7 +64,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.3', '7.4', '8.0']
+        php-versions: ['7.4', '8.0']
         laravel-versions: ['8.17.*', '8.22.*', '8.28.*', '8.34.*', '8.*']
 
     steps:
